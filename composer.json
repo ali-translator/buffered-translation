@@ -19,7 +19,8 @@
     },
     "require": {
         "php": ">=7.1",
-        "ali-translator/translator":  "^0.1"
+        "ali-translator/translator":  "^0",
+        "ext-intl": "*"
     },
     "autoload": {
         "psr-4": {

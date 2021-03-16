@@ -10,25 +10,24 @@ use ALI\Translator\PhraseCollection\OriginalPhraseCollection;
 class BufferContentExtractor
 {
     /**
-     * @param OriginalPhraseCollection $existOriginalPhraseCollection
+     * @param OriginalPhraseCollection $originalPhraseCollection
      * @param BufferContent $bufferContent
      * @return OriginalPhraseCollection
      */
     public function extractOriginals(
         BufferContent $bufferContent,
-        OriginalPhraseCollection $existOriginalPhraseCollection = null
+        OriginalPhraseCollection $originalPhraseCollection
     )
     {
-        $existOriginalPhraseCollection = $existOriginalPhraseCollection ?: new OriginalPhraseCollection;
         if ($bufferContent->isContentForTranslation()) {
-            $existOriginalPhraseCollection->add($bufferContent->getContentString());
+            $originalPhraseCollection->add($bufferContent->getContentString());
         }
         if ($bufferContent->getChildContentCollection()) {
             foreach ($bufferContent->getChildContentCollection()->getArray() as $childBufferContent) {
-                $this->extractOriginals($childBufferContent, $existOriginalPhraseCollection);
+                $this->extractOriginals($childBufferContent, $originalPhraseCollection);
             }
         }
 
-        return $existOriginalPhraseCollection;
+        return $originalPhraseCollection;
     }
 }

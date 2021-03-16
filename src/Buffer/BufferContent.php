@@ -2,12 +2,14 @@
 
 namespace ALI\BufferTranslation\Buffer;
 
+use ALI\BufferTranslation\Buffer\MessageFormat\MessageFormatsEnum;
+
 /**
  * BufferContent
  */
 class BufferContent
 {
-    const OPTION_FORMAT = 1;
+    const OPTION_MESSAGE_FORMAT = 1;
     const OPTION_WITH_CONTENT_TRANSLATION = 2;
     const OPTION_WITH_FALLBACK = 3;
 
@@ -25,8 +27,8 @@ class BufferContent
      * @var array
      */
     protected $options = [
-        self::OPTION_FORMAT => 'string',
-        self::OPTION_WITH_CONTENT_TRANSLATION => true,
+        self::OPTION_MESSAGE_FORMAT => MessageFormatsEnum::BUFFER_CONTENT,
+        self::OPTION_WITH_CONTENT_TRANSLATION => false,
         self::OPTION_WITH_FALLBACK => true,
     ];
 
@@ -73,5 +75,13 @@ class BufferContent
     public function isFallbackTranslation()
     {
         return $this->options[self::OPTION_WITH_FALLBACK];
+    }
+
+    /**
+     * @return int|string
+     */
+    public function getMessageFormat()
+    {
+        return $this->options[self::OPTION_MESSAGE_FORMAT];
     }
 }

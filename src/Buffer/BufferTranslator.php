@@ -3,8 +3,11 @@
 namespace ALI\BufferTranslation\Buffer;
 
 use ALI\BufferTranslation\Buffer\KeyGenerators\KeyGenerator;
+use ALI\BufferTranslation\Buffer\MessageFormat\MessageFormatsEnum;
+use ALI\Translator\PhraseCollection\OriginalPhraseCollection;
 use ALI\Translator\PhraseCollection\TranslatePhraseCollection;
 use ALI\Translator\PlainTranslator\PlainTranslatorInterface;
+use MessageFormatter;
 
 /**
  * Class
@@ -21,7 +24,8 @@ class BufferTranslator
         PlainTranslatorInterface $plainTranslator
     )
     {
-        $originalsCollection = (new BufferContentExtractor())->extractOriginals($bufferContent);
+        $originalPhraseCollection = new OriginalPhraseCollection($plainTranslator->getSource()->getOriginalLanguageAlias());
+        $originalsCollection = (new BufferContentExtractor())->extractOriginals($bufferContent, $originalPhraseCollection);
         $translationCollection = $plainTranslator->translateAll($originalsCollection->getAll());
 
         return $this->replaceBuffersToTranslation($bufferContent, $translationCollection);
@@ -48,8 +52,22 @@ class BufferTranslator
             return $contentString;
         }
 
-        $forReplacing = $this->prepareBufferReplacingArray($translationCollection, $childContentCollection);
-        $contentString = $this->resolveChildBuffers($contentString, $forReplacing, $childContentCollection->getKeyGenerator());
+        switch ($bufferContent->getMessageFormat()) {
+            case MessageFormatsEnum::MESSAGE_FORMATTER:
+                $parameters = [];
+                if ($bufferContent->getChildContentCollection()) {
+                    foreach ($bufferContent->getChildContentCollection()->getArray() as $key => $value) {
+                        $parameters[$key] = $value->getContentString();
+                    }
+                }
+                $contentString = MessageFormatter::formatMessage($translationCollection->getTranslationLanguageAlias(), $contentString, $parameters);
+                break;
+            case MessageFormatsEnum::BUFFER_CONTENT:
+
+                $forReplacing = $this->prepareBufferReplacingArray($translationCollection, $childContentCollection);
+                $contentString = $this->resolveChildBuffers($contentString, $forReplacing, $childContentCollection->getKeyGenerator());
+                break;
+        }
 
         return $contentString;
     }
@@ -59,7 +77,10 @@ class BufferTranslator
      * @param BufferContentCollection $childContentCollection
      * @return array
      */
-    protected function prepareBufferReplacingArray(TranslatePhraseCollection $translationCollection, BufferContentCollection $childContentCollection): array
+    protected function prepareBufferReplacingArray(
+        TranslatePhraseCollection $translationCollection,
+        BufferContentCollection $childContentCollection
+    ): array
     {
         $forReplacing = [];
         foreach ($childContentCollection->getArray() as $bufferId => $childBufferContent) {
@@ -91,6 +112,9 @@ class BufferTranslator
             $keyGenerator->getRegularExpression(),
             function ($matches) use (&$forReplacing) {
                 $replacedIds[] = $matches['id'];
+                if(!isset($forReplacing[$matches[0]])){
+                    return $matches[0];
+                }
 
                 return $forReplacing[$matches[0]];
             },

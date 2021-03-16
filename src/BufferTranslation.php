@@ -57,19 +57,19 @@ class BufferTranslation
         ] + $defaultBufferContentOptions;
     }
 
-    public function addToBuffer(string $content, array $params = [], array $options = []): string
+    public function add(string $content, array $params = [], array $options = []): string
     {
         $options += $this->defaultBufferContentOptions;
         $bufferContent = $this->bufferContentFactory->create($content, $params, $options);
 
-        return $this->add($bufferContent);
+        return $this->addBuffer($bufferContent);
     }
 
     /**
      * @param BufferContent $bufferContent
      * @return string
      */
-    public function add(BufferContent $bufferContent)
+    public function addBuffer(BufferContent $bufferContent)
     {
         return $this->bufferContentCollection->add($bufferContent);
     }

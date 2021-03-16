@@ -28,7 +28,7 @@ class BufferContentFactory
         if ($parameters) {
             $bufferContentCollection = new BufferContentCollection($this->keyGenerator);
             foreach ($parameters as $childContentId => $childData) {
-                if (is_string($childData)) {
+                if (!is_array($childData)) {
                     $childBufferContent = $this->create($childData);
                 } else {
                     $childContentSting = $childData['content'];
