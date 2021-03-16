@@ -10,6 +10,9 @@ $ composer require ali-translator/buffered-translation
 
 ### Quick start
 
+As this packet extended from <b>[ali-translator/translator](https://github.com/ali-translator/translator)</b>,
+at first you need create `$translator` and vector of his translation - `$plaiTranslator`
+
 ```php
 use ALI\BufferTranslation\BufferTranslation;
 use ALI\Translator\PlainTranslator\PlainTranslator;
@@ -51,20 +54,19 @@ use ALI\BufferTranslation\BufferTranslation;
 /** @var string $html */
 
 echo $bufferTranslation->translateBuffer($html);
-
 ```
 
 ### Tips
-* Every phrase for buffer translation has options parameter, with next features:
-    * `BufferContent::OPTION_MESSAGE_FORMAT`
-        * `MessageFormatsEnum::BUFFER_CONTENT` - allow only "plain" parameters, example "{name}", 
+* Every buffered phrase has translation options parameters, with next features:
+    * <b>`BufferContent::OPTION_MESSAGE_FORMAT`</b>
+        * <b>`MessageFormatsEnum::BUFFER_CONTENT`</b> - allow only "plain" parameters, example "{name}",  
         but also has infinite nesting of parameters.<br> 
         It is <b>default</b> type
-        * `MessageFormatsEnum::MESSAGE_FORMATTER` - use PECL intl packet [MessageFormatter::formatMessage](https://www.php.net/manual/ru/messageformatter.formatmessage.php) for text formatting.  
-    * `BufferContent::OPTION_WITH_CONTENT_TRANSLATION` It's bool parameter, for translating included parameter.<br>
-    In <b>default</b> this set to "false".  
-    * `BufferContent::OPTION_WITH_FALLBACK` Bool parameter, which determines whether the original text will be returned if no translation is found.<br> 
-    In <b>default</b> this set to "true".
+        * <b>`MessageFormatsEnum::MESSAGE_FORMATTER`</b> - uses PECL intl packet [MessageFormatter::formatMessage](https://www.php.net/manual/ru/messageformatter.formatmessage.php) for text formatting.  
+    * <b>`BufferContent::OPTION_WITH_CONTENT_TRANSLATION`</b> It's bool parameter, which indicates whether to translate included parameter.<br>
+    By <b>default</b>, this value is set to <b>"false"</b>.  
+    * <b>`BufferContent::OPTION_WITH_FALLBACK`</b> Bool parameter, which determines whether the original text will be returned if no translation is found.<br> 
+    By <b>default</b>, this value is set to <b>"true"</b>.
 
 ### Suggest packets
 * <b>[ali-translator/translator-js-integrate](https://github.com/ali-translator/translator-js-integrate)</b> - Integrate this packet to frontend js
