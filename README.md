@@ -10,8 +10,8 @@ $ composer require ali-translator/buffered-translation
 
 ### Quick start
 
-As this packet extended from <b>[ali-translator/translator](https://github.com/ali-translator/translator)</b>,
-at first you need create `$translator` and vector of his translation - `$plaiTranslator`
+Since this package extended from <b>[ali-translator/translator](https://github.com/ali-translator/translator)</b>,
+at first you need create `$translator` and wrapper, with vector of his translation - `$plaiTranslator`
 
 ```php
 use ALI\BufferTranslation\BufferTranslation;
