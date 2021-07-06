@@ -48,7 +48,7 @@ class BufferTranslation
     )
     {
         $this->plainTranslator = $plainTranslator;
-        $this->templatesKeyGenerator = $templatesKeyGenerator ?: new StaticKeyGenerator('{', '}');
+        $this->templatesKeyGenerator = $templatesKeyGenerator ?: new StaticKeyGenerator('{#bft-', '#}');
         $this->bufferContentCollection = $bufferContentCollection ?: new BufferContentCollection($this->templatesKeyGenerator);
         $this->bufferContentFactory = new BufferContentFactory($this->templatesKeyGenerator);
         $this->defaultBufferContentOptions = [
