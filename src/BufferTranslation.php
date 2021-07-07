@@ -31,11 +31,6 @@ class BufferTranslation
     protected $bufferContentFactory;
 
     /**
-     * @var KeyGenerator
-     */
-    protected $templatesKeyGenerator;
-
-    /**
      * @var array
      */
     protected $defaultBufferContentOptions = [];
@@ -43,18 +38,21 @@ class BufferTranslation
     public function __construct(
         PlainTranslatorInterface $plainTranslator,
         KeyGenerator $templatesKeyGenerator = null,
+        KeyGenerator $childTemplatesKeyGenerator = null,
         BufferContentCollection $bufferContentCollection = null,
         array $defaultBufferContentOptions = []
     )
     {
+        $templatesKeyGenerator = $templatesKeyGenerator ?: new StaticKeyGenerator('{#bft-', '#}');
+        $childTemplatesKeyGenerator = $childTemplatesKeyGenerator ?: new StaticKeyGenerator('{', '}');
+
         $this->plainTranslator = $plainTranslator;
-        $this->templatesKeyGenerator = $templatesKeyGenerator ?: new StaticKeyGenerator('{#bft-', '#}');
-        $this->bufferContentCollection = $bufferContentCollection ?: new BufferContentCollection($this->templatesKeyGenerator);
-        $this->bufferContentFactory = new BufferContentFactory($this->templatesKeyGenerator);
+        $this->bufferContentCollection = $bufferContentCollection ?: new BufferContentCollection($templatesKeyGenerator);
+        $this->bufferContentFactory = new BufferContentFactory($childTemplatesKeyGenerator);
         $this->defaultBufferContentOptions = [
-            BufferContent::OPTION_WITH_CONTENT_TRANSLATION => true,
-            BufferContent::OPTION_WITH_FALLBACK=> true,
-        ] + $defaultBufferContentOptions;
+                BufferContent::OPTION_WITH_CONTENT_TRANSLATION => true,
+                BufferContent::OPTION_WITH_FALLBACK=> true,
+            ] + $defaultBufferContentOptions;
     }
 
     public function add(string $content, array $params = [], array $options = []): string
