@@ -67,6 +67,7 @@ echo $bufferTranslation->translateBuffer($html);
     By <b>default</b>, this value is set to <b>"false"</b>.  
     * <b>`BufferContent::OPTION_WITH_FALLBACK`</b> Bool parameter, which determines whether the original text will be returned if no translation is found.<br> 
     By <b>default</b>, this value is set to <b>"true"</b>.
+    * <b>`BufferContent::OPTION_WITH_HTML_ENCODING`</b> - use html encode for output text 
 
 ### Suggest packets
 * <b>[ali-translator/translator-js-integrate](https://github.com/ali-translator/translator-js-integrate)</b> - Integrate this packet to frontend js

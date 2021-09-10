@@ -220,5 +220,33 @@ class BufferTranslationTest extends TestCase
             $translation = $bufferTranslation->translateBuffer($content);
             $this->assertEquals('У Тома є багато яблук', $translation);
         }
+
+        {
+            // Translate with encoding
+            $bufferTranslation = new BufferTranslation($plainTranslator);
+
+            $text = '<div class="test">Tom</div>';
+            $content = $bufferTranslation->add($text, [], [
+                BufferContent::OPTION_WITH_HTML_ENCODING => true,
+            ]);
+            $translation = $bufferTranslation->translateBuffer($content);
+            self::assertEquals('&lt;div class="test"&gt;Tom&lt;/div&gt;', $translation);
+            self::assertEquals(html_entity_decode($translation), $text);
+
+            // Translate with encoding, few included parameters
+            $bufferTranslation = new BufferTranslation($plainTranslator);
+
+            $content = $bufferTranslation->add('<div>This is {h1}</div>', [
+                'h1' => [
+                    'content' => '<h1>H1</h1>',
+                ],
+            ], [
+                BufferContent::OPTION_WITH_HTML_ENCODING => true,
+            ]);
+            $translation = $bufferTranslation->translateBuffer($content);
+
+            self::assertEquals('&lt;div&gt;This is &lt;h1&gt;H1&lt;/h1&gt;&lt;/div&gt;', $translation);
+            self::assertEquals('<div>This is <h1>H1</h1></div>', html_entity_decode($translation));
+        }
     }
 }

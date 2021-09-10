@@ -39,13 +39,16 @@ class BufferTranslator
     protected function replaceBuffersToTranslation(
         BufferContent $bufferContent,
         TranslatePhraseCollection $translationCollection
-    )
+    ): string
     {
         $contentString = $bufferContent->getContentString();
         $childContentCollection = $bufferContent->getChildContentCollection();
 
         if ($bufferContent->isContentForTranslation()) {
             $contentString = $translationCollection->getTranslate($contentString, $bufferContent->isFallbackTranslation());
+        }
+        if ($bufferContent->isHtmlEncoding()) {
+            $contentString = htmlspecialchars($contentString, ENT_NOQUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8', false);
         }
 
         if (!$childContentCollection) {
@@ -87,6 +90,9 @@ class BufferTranslator
             $translatedChildBufferString = $this->replaceBuffersToTranslation($childBufferContent, $translationCollection);
             if (!$translatedChildBufferString && $childBufferContent->isFallbackTranslation()) {
                 $translatedChildBufferString = $childBufferContent->getContentString();
+            }
+            if ($childBufferContent->isHtmlEncoding()) {
+                $translatedChildBufferString = htmlspecialchars($translatedChildBufferString, ENT_NOQUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8', false);
             }
 
             $bufferKey = $childContentCollection->generateBufferKey($bufferId);

@@ -12,6 +12,7 @@ class BufferContent
     const OPTION_MESSAGE_FORMAT = 1;
     const OPTION_WITH_CONTENT_TRANSLATION = 2;
     const OPTION_WITH_FALLBACK = 3;
+    const OPTION_WITH_HTML_ENCODING = 4;
 
     /**
      * @var string
@@ -30,6 +31,7 @@ class BufferContent
         self::OPTION_MESSAGE_FORMAT => MessageFormatsEnum::BUFFER_CONTENT,
         self::OPTION_WITH_CONTENT_TRANSLATION => false,
         self::OPTION_WITH_FALLBACK => true,
+        self::OPTION_WITH_HTML_ENCODING => false,
     ];
 
     /**
@@ -61,18 +63,12 @@ class BufferContent
         return $this->childContentCollection;
     }
 
-    /**
-     * @return bool
-     */
-    public function isContentForTranslation()
+    public function isContentForTranslation(): bool
     {
         return $this->options[self::OPTION_WITH_CONTENT_TRANSLATION];
     }
 
-    /**
-     * @return bool
-     */
-    public function isFallbackTranslation()
+    public function isFallbackTranslation(): bool
     {
         return $this->options[self::OPTION_WITH_FALLBACK];
     }
@@ -83,5 +79,10 @@ class BufferContent
     public function getMessageFormat()
     {
         return $this->options[self::OPTION_MESSAGE_FORMAT];
+    }
+
+    public function isHtmlEncoding(): bool
+    {
+        return $this->options[self::OPTION_WITH_HTML_ENCODING];
     }
 }
