@@ -248,5 +248,18 @@ class BufferTranslationTest extends TestCase
             self::assertEquals('&lt;div&gt;This is &lt;h1&gt;H1&lt;/h1&gt;&lt;/div&gt;', $translation);
             self::assertEquals('<div>This is <h1>H1</h1></div>', html_entity_decode($translation));
         }
+
+        {
+            // Check preventing buffering exist buffered key
+            $bufferTranslation = new BufferTranslation($plainTranslator);
+
+            $text = 'TEXT';
+            $content1 = $bufferTranslation->add($text);
+            $content2 = $bufferTranslation->add($content1);
+            self::assertEquals($content1, $content2);
+            $content3 = $bufferTranslation->add($content2);
+            $translation = $bufferTranslation->translateBuffer($content3);
+            self::assertEquals($text, $translation);
+        }
     }
 }

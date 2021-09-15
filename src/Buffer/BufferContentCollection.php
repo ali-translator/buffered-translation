@@ -29,6 +29,11 @@ class BufferContentCollection implements IteratorAggregate
     protected $indexedSimplyBufferContensByContent = [];
 
     /**
+     * @var mixed[]
+     */
+    protected $existBufferKeys = [];
+
+    /**
      * @var int
      */
     protected $idIncrementValue = 0;
@@ -59,6 +64,11 @@ class BufferContentCollection implements IteratorAggregate
      */
     public function add(BufferContent $bufferContent, $bufferContentId = null)
     {
+        if (isset($this->existBufferKeys[$bufferContent->getContentString()])) {
+            // Prevent buffering exist buffered key
+            return $bufferContent->getContentString();
+        }
+
         $isSimpleBufferContent = !$bufferContent->getChildContentCollection();
 
         if ($isSimpleBufferContent && isset($this->indexedSimplyBufferContensByContent[$bufferContent->getContentString()])) {
@@ -73,7 +83,10 @@ class BufferContentCollection implements IteratorAggregate
             }
         }
 
-        return $this->generateBufferKey($bufferContentId);
+        $bufferKey = $this->generateBufferKey($bufferContentId);
+        $this->existBufferKeys[$bufferKey] = true;
+
+        return $bufferKey;
     }
 
     /**
