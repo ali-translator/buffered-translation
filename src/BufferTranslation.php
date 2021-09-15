@@ -55,8 +55,11 @@ class BufferTranslation
             ] + $defaultBufferContentOptions;
     }
 
-    public function add(string $content, array $params = [], array $options = []): string
+    public function add(?string $content, array $params = [], array $options = []): string
     {
+        if (!$content) {
+            return '';
+        }
         $options += $this->defaultBufferContentOptions;
         $bufferContent = $this->bufferContentFactory->create($content, $params, $options);
 
