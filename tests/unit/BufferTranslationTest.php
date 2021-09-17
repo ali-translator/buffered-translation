@@ -261,5 +261,16 @@ class BufferTranslationTest extends TestCase
             $translation = $bufferTranslation->translateBuffer($content3);
             self::assertEquals($text, $translation);
         }
+
+        {
+            // Resolve two parameters with the same value
+            $bufferTranslation = new BufferTranslation($plainTranslator);
+            $bufferedContent =  $bufferTranslation->add('{a}{b}',[
+                'a' => 1,
+                'b' => 1,
+            ]);
+            $translated = $bufferTranslation->translateBuffer($bufferedContent);
+            self::assertEquals('11', $translated);
+        }
     }
 }

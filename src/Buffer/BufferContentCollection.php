@@ -71,7 +71,7 @@ class BufferContentCollection implements IteratorAggregate
 
         $isSimpleBufferContent = !$bufferContent->getChildContentCollection();
 
-        if ($isSimpleBufferContent && isset($this->indexedSimplyBufferContensByContent[$bufferContent->getContentString()])) {
+        if (empty($bufferContentId) && $isSimpleBufferContent && isset($this->indexedSimplyBufferContensByContent[$bufferContent->getContentString()])) {
             // If this text already exist, and their without parameters - return old buffer id
             $bufferContentId = $this->indexedSimplyBufferContensByContent[$bufferContent->getContentString()];
         } else {
