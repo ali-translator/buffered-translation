@@ -56,18 +56,38 @@ use ALI\BufferTranslation\BufferTranslation;
 echo $bufferTranslation->translateBuffer($html);
 ```
 
-### Tips
-* Every buffered phrase has translation options parameters, with next features:
-    * <b>`BufferContent::OPTION_MESSAGE_FORMAT`</b>
-        * <b>`MessageFormatsEnum::BUFFER_CONTENT`</b> - allow only "plain" parameters, example "{name}",  
-        but also has infinite nesting of parameters.<br> 
-        It is <b>default</b> type
-        * <b>`MessageFormatsEnum::MESSAGE_FORMATTER`</b> - uses PECL intl packet [MessageFormatter::formatMessage](https://www.php.net/manual/ru/messageformatter.formatmessage.php) for text formatting.  
-    * <b>`BufferContent::OPTION_WITH_CONTENT_TRANSLATION`</b> It's bool parameter, which indicates whether to translate included parameter.<br>
-    By <b>default</b>, this value is set to <b>"false"</b>.  
-    * <b>`BufferContent::OPTION_WITH_FALLBACK`</b> Bool parameter, which determines whether the original text will be returned if no translation is found.<br> 
-    By <b>default</b>, this value is set to <b>"true"</b>.
-    * <b>`BufferContent::OPTION_WITH_HTML_ENCODING`</b> - use html encode for output text 
+### Multiple level parameters, and they options
+
+```php
+$html = '<div class="test">' . $bufferTranslation->add('Hello {child}. Hi {object}', [
+        'child' => [
+            'content' => 'Tom and {secondName}',
+            'parameters' => [
+                'secondName' => [
+                    'content' => 'Andrea',
+                    'options' => [
+                        BufferContent::OPTION_WITH_CONTENT_TRANSLATION => true,
+                    ]
+                ],
+            ],
+        ],
+        'object' => 'sun',
+    ]) . '</div>';
+$translatedHtml = $bufferTranslation->translateBuffer($html);
+```
+
+### Options
+Every buffered phrase has translation options parameters, with next features:
+* <b>`BufferContent::OPTION_MESSAGE_FORMAT`</b>
+    * <b>`MessageFormatsEnum::BUFFER_CONTENT`</b> - allow only "plain" parameters, example "{name}",  
+    but also has infinite nesting of parameters.<br> 
+    It is <b>default</b> type
+    * <b>`MessageFormatsEnum::MESSAGE_FORMATTER`</b> - uses PECL intl packet [MessageFormatter::formatMessage](https://www.php.net/manual/ru/messageformatter.formatmessage.php) for text formatting.  
+* <b>`BufferContent::OPTION_WITH_CONTENT_TRANSLATION`</b> It's bool parameter, which indicates whether to translate included parameter.<br>
+By <b>default</b>, this value is set to <b>"false"</b>.  
+* <b>`BufferContent::OPTION_WITH_FALLBACK`</b> Bool parameter, which determines whether the original text will be returned if no translation is found.<br> 
+By <b>default</b>, this value is set to <b>"true"</b>.
+* <b>`BufferContent::OPTION_WITH_HTML_ENCODING`</b> - use html encode for output text 
 
 ### Suggest packets
 * <b>[ali-translator/translator-js-integrate](https://github.com/ali-translator/translator-js-integrate)</b> - Integrate this packet to frontend js
