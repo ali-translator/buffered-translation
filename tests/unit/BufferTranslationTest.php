@@ -195,13 +195,21 @@ class BufferTranslationTest extends TestCase
         {
             // Plural with another text, WITH translate
             $originalPhrase = '{name} has {appleNumbers, plural, =0{no any apple}=1{one apple}other{many apples}}';
+            $originalName = 'Tom';
+
+            $plainTranslator->saveTranslate($originalName,'Тома');
             $plainTranslator->saveTranslate($originalPhrase,'У {name} {appleNumbers, plural, =0{немає яблук}=1{є одне яблуко}other{є багато яблук}}');
 
             $bufferTranslation = new BufferTranslation($plainTranslator);
 
             $content = $bufferTranslation->add($originalPhrase, [
                 'appleNumbers' => 0,
-                'name' => 'Тома',
+                'name' => [
+                    'content' => $originalName,
+                    'options' => [
+                        BufferContent::OPTION_WITH_CONTENT_TRANSLATION => true,
+                    ]
+                ],
             ], [BufferContent::OPTION_MESSAGE_FORMAT => MessageFormatsEnum::MESSAGE_FORMATTER]);
             $translation = $bufferTranslation->translateBuffer($content);
             $this->assertEquals('У Тома немає яблук', $translation);

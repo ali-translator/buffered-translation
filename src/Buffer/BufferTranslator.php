@@ -60,7 +60,7 @@ class BufferTranslator
                 $parameters = [];
                 if ($bufferContent->getChildContentCollection()) {
                     foreach ($bufferContent->getChildContentCollection()->getArray() as $key => $value) {
-                        $parameters[$key] = $value->getContentString();
+                        $parameters[$key] = $this->replaceBuffersToTranslation($value, $translationCollection);
                     }
                 }
                 $contentString = MessageFormatter::formatMessage($translationCollection->getTranslationLanguageAlias(), $contentString, $parameters);
