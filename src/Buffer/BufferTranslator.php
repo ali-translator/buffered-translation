@@ -42,7 +42,6 @@ class BufferTranslator
     ): string
     {
         $contentString = $bufferContent->getContentString();
-        $childContentCollection = $bufferContent->getChildContentCollection();
 
         if ($bufferContent->isContentForTranslation()) {
             $contentString = $translationCollection->getTranslate($contentString, $bufferContent->isFallbackTranslation());
@@ -50,7 +49,11 @@ class BufferTranslator
         if ($bufferContent->isHtmlEncoding()) {
             $contentString = htmlspecialchars($contentString, ENT_NOQUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8', false);
         }
+        if ($modifierCallback = $bufferContent->getModifierCallback()) {
+            $contentString = $modifierCallback($contentString);
+        }
 
+        $childContentCollection = $bufferContent->getChildContentCollection();
         if (!$childContentCollection) {
             return $contentString;
         }
@@ -58,15 +61,12 @@ class BufferTranslator
         switch ($bufferContent->getMessageFormat()) {
             case MessageFormatsEnum::MESSAGE_FORMATTER:
                 $parameters = [];
-                if ($bufferContent->getChildContentCollection()) {
-                    foreach ($bufferContent->getChildContentCollection()->getArray() as $key => $value) {
-                        $parameters[$key] = $this->replaceBuffersToTranslation($value, $translationCollection);
-                    }
+                foreach ($childContentCollection->getArray() as $key => $value) {
+                    $parameters[$key] = $this->replaceBuffersToTranslation($value, $translationCollection);
                 }
                 $contentString = MessageFormatter::formatMessage($translationCollection->getTranslationLanguageAlias(), $contentString, $parameters);
                 break;
             case MessageFormatsEnum::BUFFER_CONTENT:
-
                 $forReplacing = $this->prepareBufferReplacingArray($translationCollection, $childContentCollection);
                 $contentString = $this->resolveChildBuffers($contentString, $forReplacing, $childContentCollection->getKeyGenerator());
                 break;
@@ -88,12 +88,6 @@ class BufferTranslator
         $forReplacing = [];
         foreach ($childContentCollection->getArray() as $bufferId => $childBufferContent) {
             $translatedChildBufferString = $this->replaceBuffersToTranslation($childBufferContent, $translationCollection);
-            if (!$translatedChildBufferString && $childBufferContent->isFallbackTranslation()) {
-                $translatedChildBufferString = $childBufferContent->getContentString();
-            }
-            if ($childBufferContent->isHtmlEncoding()) {
-                $translatedChildBufferString = htmlspecialchars($translatedChildBufferString, ENT_NOQUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8', false);
-            }
 
             $bufferKey = $childContentCollection->generateBufferKey($bufferId);
             $forReplacing[$bufferKey] = $translatedChildBufferString;
@@ -117,7 +111,7 @@ class BufferTranslator
         $contentString = preg_replace_callback(
             $keyGenerator->getRegularExpression(),
             function ($matches) use (&$forReplacing) {
-                $replacedIds[] = $matches['id'];
+                // $replacedIds[] = $matches['id'];
                 if(!isset($forReplacing[$matches[0]])){
                     return $matches[0];
                 }

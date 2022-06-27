@@ -241,12 +241,30 @@ class BufferTranslationTest extends TestCase
             self::assertEquals('&lt;div class="test"&gt;Tom&lt;/div&gt;', $translation);
             self::assertEquals(html_entity_decode($translation), $text);
 
-            // Translate with encoding, few included parameters
+            // Translate with encoding, and included parameters without encoding
             $bufferTranslation = new BufferTranslation($plainTranslator);
 
             $content = $bufferTranslation->add('<div>This is {h1}</div>', [
                 'h1' => [
                     'content' => '<h1>H1</h1>',
+                ],
+            ], [
+                BufferContent::OPTION_WITH_HTML_ENCODING => true,
+            ]);
+            $translation = $bufferTranslation->translateBuffer($content);
+
+            self::assertEquals('&lt;div&gt;This is <h1>H1</h1>&lt;/div&gt;', $translation);
+            self::assertEquals('<div>This is <h1>H1</h1></div>', html_entity_decode($translation));
+
+            // Translate with encoding, and included parameters WITH encoding
+            $bufferTranslation = new BufferTranslation($plainTranslator);
+
+            $content = $bufferTranslation->add('<div>This is {h1}</div>', [
+                'h1' => [
+                    'content' => '<h1>H1</h1>',
+                    'options' => [
+                        BufferContent::OPTION_WITH_HTML_ENCODING => true,
+                    ]
                 ],
             ], [
                 BufferContent::OPTION_WITH_HTML_ENCODING => true,
@@ -279,6 +297,20 @@ class BufferTranslationTest extends TestCase
             ]);
             $translated = $bufferTranslation->translateBuffer($bufferedContent);
             self::assertEquals('11', $translated);
+        }
+
+        {
+            // Check buffer translation with callback modifier
+            $bufferTranslation = new BufferTranslation($plainTranslator);
+
+            $text = 'TEXT';
+            $content = $bufferTranslation->add($text,[],[
+                BufferContent::OPTION_MODIFIER_CALLBACK => function (string $translation): string {
+                    return '+' . $translation . '-';
+                },
+            ]);
+            $translation = $bufferTranslation->translateBuffer($content);
+            self::assertEquals('+' . $text  . '-', $translation);
         }
     }
 }

@@ -13,6 +13,7 @@ class BufferContent
     const OPTION_WITH_CONTENT_TRANSLATION = 2;
     const OPTION_WITH_FALLBACK = 3;
     const OPTION_WITH_HTML_ENCODING = 4;
+    const OPTION_MODIFIER_CALLBACK = 5;
 
     /**
      * @var string
@@ -32,6 +33,7 @@ class BufferContent
         self::OPTION_WITH_CONTENT_TRANSLATION => false,
         self::OPTION_WITH_FALLBACK => true,
         self::OPTION_WITH_HTML_ENCODING => false,
+        self::OPTION_MODIFIER_CALLBACK => null,
     ];
 
     /**
@@ -84,5 +86,10 @@ class BufferContent
     public function isHtmlEncoding(): bool
     {
         return $this->options[self::OPTION_WITH_HTML_ENCODING];
+    }
+
+    public function getModifierCallback() :?callable
+    {
+        return $this->options[self::OPTION_MODIFIER_CALLBACK];
     }
 }

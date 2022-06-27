@@ -26,7 +26,7 @@ class BufferContentCollection implements IteratorAggregate
     /**
      * @var mixed[]
      */
-    protected $indexedSimplyBufferContensByContent = [];
+    protected $indexedSimplyBufferContentsByContent = [];
 
     /**
      * @var mixed[]
@@ -71,15 +71,15 @@ class BufferContentCollection implements IteratorAggregate
 
         $isSimpleBufferContent = !$bufferContent->getChildContentCollection();
 
-        if (empty($bufferContentId) && $isSimpleBufferContent && isset($this->indexedSimplyBufferContensByContent[$bufferContent->getContentString()])) {
+        if (empty($bufferContentId) && $isSimpleBufferContent && isset($this->indexedSimplyBufferContentsByContent[$bufferContent->getContentString()])) {
             // If this text already exist, and their without parameters - return old buffer id
-            $bufferContentId = $this->indexedSimplyBufferContensByContent[$bufferContent->getContentString()];
+            $bufferContentId = $this->indexedSimplyBufferContentsByContent[$bufferContent->getContentString()];
         } else {
             // Adding new unique bufferContent
             $bufferContentId = $bufferContentId ?: $this->idIncrementValue++;
             $this->buffersContent[$bufferContentId] = $bufferContent;
             if ($isSimpleBufferContent) {
-                $this->indexedSimplyBufferContensByContent[$bufferContent->getContentString()] = $bufferContentId;
+                $this->indexedSimplyBufferContentsByContent[$bufferContent->getContentString()] = $bufferContentId;
             }
         }
 
@@ -114,7 +114,7 @@ class BufferContentCollection implements IteratorAggregate
         if (isset($this->buffersContent[$bufferContentId])) {
             $buffersContent = $this->buffersContent[$bufferContentId];
             unset($this->buffersContent[$bufferContentId]);
-            unset($this->indexedSimplyBufferContensByContent[$buffersContent->getContentString()]);
+            unset($this->indexedSimplyBufferContentsByContent[$buffersContent->getContentString()]);
         }
     }
 
