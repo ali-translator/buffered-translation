@@ -28,13 +28,16 @@ class BufferContent
     /**
      * @var array
      */
-    protected $options = [
+    private $defaultOptions = [
         self::OPTION_MESSAGE_FORMAT => MessageFormatsEnum::BUFFER_CONTENT,
         self::OPTION_WITH_CONTENT_TRANSLATION => false,
         self::OPTION_WITH_FALLBACK => true,
         self::OPTION_WITH_HTML_ENCODING => false,
         self::OPTION_MODIFIER_CALLBACK => null,
     ];
+
+
+    private $options = [];
 
     /**
      * @param string $content
@@ -46,7 +49,7 @@ class BufferContent
     {
         $this->content = $content;
         $this->childContentCollection = $childContentCollection;
-        $this->options = $options + $this->options;
+        $this->options = $options + $this->defaultOptions;
     }
 
     /**
@@ -55,6 +58,29 @@ class BufferContent
     public function getContentString()
     {
         return $this->content;
+    }
+
+    /**
+     * @var string
+     */
+    private $_idHash;
+
+    public function getIdHash(): string
+    {
+        if (!$this->_idHash) {
+            $optionsHash = null;
+            if ($this->options !== $this->defaultOptions) {
+                $options = $this->options;
+                if (isset($options[self::OPTION_MODIFIER_CALLBACK])) {
+                    $options[self::OPTION_MODIFIER_CALLBACK] = spl_object_hash($options[self::OPTION_MODIFIER_CALLBACK]);
+                }
+                $optionsHash = serialize($options);
+            }
+
+            $this->_idHash = $optionsHash . '#' . $this->content;
+        }
+
+        return $this->_idHash;
     }
 
     /**

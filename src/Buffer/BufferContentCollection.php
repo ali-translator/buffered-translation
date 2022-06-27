@@ -71,15 +71,16 @@ class BufferContentCollection implements IteratorAggregate
 
         $isSimpleBufferContent = !$bufferContent->getChildContentCollection();
 
-        if (empty($bufferContentId) && $isSimpleBufferContent && isset($this->indexedSimplyBufferContentsByContent[$bufferContent->getContentString()])) {
+        $bufferContentIdHash = $bufferContent->getIdHash();
+        if (empty($bufferContentId) && $isSimpleBufferContent && isset($this->indexedSimplyBufferContentsByContent[$bufferContentIdHash])) {
             // If this text already exist, and their without parameters - return old buffer id
-            $bufferContentId = $this->indexedSimplyBufferContentsByContent[$bufferContent->getContentString()];
+            $bufferContentId = $this->indexedSimplyBufferContentsByContent[$bufferContentIdHash];
         } else {
             // Adding new unique bufferContent
             $bufferContentId = $bufferContentId ?: $this->idIncrementValue++;
             $this->buffersContent[$bufferContentId] = $bufferContent;
             if ($isSimpleBufferContent) {
-                $this->indexedSimplyBufferContentsByContent[$bufferContent->getContentString()] = $bufferContentId;
+                $this->indexedSimplyBufferContentsByContent[$bufferContent->getIdHash()] = $bufferContentId;
             }
         }
 
@@ -114,7 +115,7 @@ class BufferContentCollection implements IteratorAggregate
         if (isset($this->buffersContent[$bufferContentId])) {
             $buffersContent = $this->buffersContent[$bufferContentId];
             unset($this->buffersContent[$bufferContentId]);
-            unset($this->indexedSimplyBufferContentsByContent[$buffersContent->getContentString()]);
+            unset($this->indexedSimplyBufferContentsByContent[$buffersContent->getIdHash()]);
         }
     }
 

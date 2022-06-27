@@ -309,8 +309,9 @@ class BufferTranslationTest extends TestCase
                     return '+' . $translation . '-';
                 },
             ]);
+            $content .= $bufferTranslation->add($text);
             $translation = $bufferTranslation->translateBuffer($content);
-            self::assertEquals('+' . $text  . '-', $translation);
+            self::assertEquals('+' . $text  . '-' . $text, $translation);
         }
     }
 }
