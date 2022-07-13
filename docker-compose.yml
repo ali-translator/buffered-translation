@@ -2,7 +2,7 @@ version: '3.6'
 services:
 
     php:
-        image: chialab/php:7.4-fpm
+        image: chialab/php:7.4
         working_dir: /var/www/buffered-translation
         volumes:
             - ./:/var/www/buffered-translation

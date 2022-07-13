@@ -2,29 +2,23 @@
 
 namespace ALI\BufferTranslation\Buffer;
 
+use ALI\TextTemplate\TextTemplateItem;
 use ALI\Translator\PhraseCollection\OriginalPhraseCollection;
 
-/**
- * Class
- */
 class BufferContentExtractor
 {
-    /**
-     * @param OriginalPhraseCollection $originalPhraseCollection
-     * @param BufferContent $bufferContent
-     * @return OriginalPhraseCollection
-     */
     public function extractOriginals(
-        BufferContent $bufferContent,
+        TextTemplateItem $textTemplateItem,
         OriginalPhraseCollection $originalPhraseCollection
-    )
+    ): OriginalPhraseCollection
     {
-        if ($bufferContent->isContentForTranslation()) {
-            $originalPhraseCollection->add($bufferContent->getContentString());
+        $withTranslation = $textTemplateItem->getCustomNotes()[BufferContentOptions::WITH_CONTENT_TRANSLATION] ?? false;
+        if ($withTranslation) {
+            $originalPhraseCollection->add($textTemplateItem->getContent());
         }
-        if ($bufferContent->getChildContentCollection()) {
-            foreach ($bufferContent->getChildContentCollection()->getArray() as $childBufferContent) {
-                $this->extractOriginals($childBufferContent, $originalPhraseCollection);
+        if ($textTemplateItem->getChildTextTemplatesCollection()) {
+            foreach ($textTemplateItem->getChildTextTemplatesCollection()->getArray() as $childTextTemplate) {
+                $this->extractOriginals($childTextTemplate, $originalPhraseCollection);
             }
         }
 

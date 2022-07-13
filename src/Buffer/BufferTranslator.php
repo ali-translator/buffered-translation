@@ -2,124 +2,74 @@
 
 namespace ALI\BufferTranslation\Buffer;
 
-use ALI\BufferTranslation\Buffer\KeyGenerators\KeyGenerator;
-use ALI\BufferTranslation\Buffer\MessageFormat\MessageFormatsEnum;
+use ALI\TextTemplate\TextTemplateItem;
 use ALI\Translator\PhraseCollection\OriginalPhraseCollection;
 use ALI\Translator\PhraseCollection\TranslatePhraseCollection;
 use ALI\Translator\PlainTranslator\PlainTranslatorInterface;
-use MessageFormatter;
 
-/**
- * Class
- */
 class BufferTranslator
 {
-    /**
-     * @param BufferContent $bufferContent
-     * @param PlainTranslatorInterface $plainTranslator
-     * @return string
-     */
-    public function translateBuffer(
-        BufferContent $bufferContent,
-        PlainTranslatorInterface $plainTranslator
-    )
+    public function translateTextTemplate(
+        TextTemplateItem         $textTemplateItem,
+        PlainTranslatorInterface $plainTranslator,
+        array $defaultBufferContentOptions
+    ): TextTemplateItem
     {
         $originalPhraseCollection = new OriginalPhraseCollection($plainTranslator->getSource()->getOriginalLanguageAlias());
-        $originalsCollection = (new BufferContentExtractor())->extractOriginals($bufferContent, $originalPhraseCollection);
+        $originalsCollection = (new BufferContentExtractor())->extractOriginals($textTemplateItem, $originalPhraseCollection);
         $translationCollection = $plainTranslator->translateAll($originalsCollection->getAll());
+        $this->translateTextItemRecursive($textTemplateItem, $translationCollection, $defaultBufferContentOptions);
 
-        return $this->replaceBuffersToTranslation($bufferContent, $translationCollection);
+        return $textTemplateItem;
     }
 
-    /**
-     * @param BufferContent $bufferContent
-     * @param TranslatePhraseCollection $translationCollection
-     * @return string
-     */
-    protected function replaceBuffersToTranslation(
-        BufferContent $bufferContent,
-        TranslatePhraseCollection $translationCollection
-    ): string
-    {
-        $contentString = $bufferContent->getContentString();
-
-        if ($bufferContent->isContentForTranslation()) {
-            $contentString = $translationCollection->getTranslate($contentString, $bufferContent->isFallbackTranslation());
-        }
-        if ($bufferContent->isHtmlEncoding()) {
-            $contentString = htmlspecialchars($contentString, ENT_NOQUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8', false);
-        }
-        if ($modifierCallback = $bufferContent->getModifierCallback()) {
-            $contentString = $modifierCallback($contentString);
-        }
-
-        $childContentCollection = $bufferContent->getChildContentCollection();
-        if (!$childContentCollection) {
-            return $contentString;
-        }
-
-        switch ($bufferContent->getMessageFormat()) {
-            case MessageFormatsEnum::MESSAGE_FORMATTER:
-                $parameters = [];
-                foreach ($childContentCollection->getArray() as $key => $value) {
-                    $parameters[$key] = $this->replaceBuffersToTranslation($value, $translationCollection);
-                }
-                $contentString = MessageFormatter::formatMessage($translationCollection->getTranslationLanguageAlias(), $contentString, $parameters);
-                break;
-            case MessageFormatsEnum::BUFFER_CONTENT:
-                $forReplacing = $this->prepareBufferReplacingArray($translationCollection, $childContentCollection);
-                $contentString = $this->resolveChildBuffers($contentString, $forReplacing, $childContentCollection->getKeyGenerator());
-                break;
-        }
-
-        return $contentString;
-    }
-
-    /**
-     * @param TranslatePhraseCollection $translationCollection
-     * @param BufferContentCollection $childContentCollection
-     * @return array
-     */
-    protected function prepareBufferReplacingArray(
+    protected function translateTextItemRecursive(
+        TextTemplateItem $textTemplateItem,
         TranslatePhraseCollection $translationCollection,
-        BufferContentCollection $childContentCollection
-    ): array
+        array $defaultBufferContentOptions
+    )
     {
-        $forReplacing = [];
-        foreach ($childContentCollection->getArray() as $bufferId => $childBufferContent) {
-            $translatedChildBufferString = $this->replaceBuffersToTranslation($childBufferContent, $translationCollection);
+        $translation = $this->getProcessesTranslation($textTemplateItem, $translationCollection, $defaultBufferContentOptions);
+        $textTemplateItem->setContent($translation);
+        $textTemplateItem->setCustomNotes($textTemplateItem->getCustomNotes() +
+            [
+                BufferContentOptions::WITH_CONTENT_TRANSLATION => false,
+            ]
+        );
 
-            $bufferKey = $childContentCollection->generateBufferKey($bufferId);
-            $forReplacing[$bufferKey] = $translatedChildBufferString;
+        if ($textTemplateItem->getChildTextTemplatesCollection()) {
+            foreach ($textTemplateItem->getChildTextTemplatesCollection()->getArray() as $childTextTemplateItem) {
+                $this->translateTextItemRecursive($childTextTemplateItem, $translationCollection, $defaultBufferContentOptions);
+            }
         }
 
-        return $forReplacing;
+        return $textTemplateItem;
     }
 
-    /**
-     * @param string $contentString
-     * @param array $forReplacing
-     * @param KeyGenerator $keyGenerator
-     * @return string
-     */
-    protected function resolveChildBuffers(
-        string $contentString,
-        array $forReplacing,
-        KeyGenerator $keyGenerator
+    private function getProcessesTranslation(
+        TextTemplateItem $textTemplateItem,
+        TranslatePhraseCollection $translationCollection,
+        array $defaultBufferContentOptions
     ): string
     {
-        $contentString = preg_replace_callback(
-            $keyGenerator->getRegularExpression(),
-            function ($matches) use (&$forReplacing) {
-                // $replacedIds[] = $matches['id'];
-                if(!isset($forReplacing[$matches[0]])){
-                    return $matches[0];
-                }
+        $bufferContentOptions = $defaultBufferContentOptions + $textTemplateItem->getCustomNotes();
 
-                return $forReplacing[$matches[0]];
-            },
-            $contentString);
+        $original = $textTemplateItem->getContent();
+        if (!empty($bufferContentOptions[BufferContentOptions::WITH_CONTENT_TRANSLATION])) {
+            $withFallback = $bufferContentOptions[BufferContentOptions::WITH_FALLBACK] ?? true;
+            $translate = $translationCollection->getTranslate($textTemplateItem->getContent(), $withFallback);
+        } else {
+            $translate = $original;
+        }
 
-        return $contentString;
+        if (!empty($bufferContentOptions[BufferContentOptions::WITH_HTML_ENCODING])) {
+            $translate = htmlspecialchars($translate, ENT_NOQUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8', false);
+        }
+        $modifierCallback = $bufferContentOptions[BufferContentOptions::MODIFIER_CALLBACK] ?? null;
+        if ($modifierCallback) {
+            $translate = $modifierCallback($translate);
+        }
+
+        return (string)$translate;
     }
 }

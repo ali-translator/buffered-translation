@@ -2,98 +2,94 @@
 
 namespace ALI\BufferTranslation;
 
-use ALI\BufferTranslation\Buffer\BufferContent;
-use ALI\BufferTranslation\Buffer\BufferContentCollection;
-use ALI\BufferTranslation\Buffer\BufferContentFactory;
+use ALI\BufferTranslation\Buffer\BufferContentOptions;
 use ALI\BufferTranslation\Buffer\BufferTranslator;
-use ALI\BufferTranslation\Buffer\KeyGenerators\KeyGenerator;
-use ALI\BufferTranslation\Buffer\KeyGenerators\StaticKeyGenerator;
+use ALI\TextTemplate\KeyGenerators\KeyGenerator;
+use ALI\TextTemplate\KeyGenerators\StaticKeyGenerator;
+use ALI\TextTemplate\MessageFormat\MessageFormatsEnum;
+use ALI\TextTemplate\TextTemplateFactory;
+use ALI\TextTemplate\TextTemplateItem;
+use ALI\TextTemplate\TextTemplateResolver;
+use ALI\TextTemplate\TextTemplatesCollection;
 use ALI\Translator\PlainTranslator\PlainTranslatorInterface;
 
-/**
- * Class
- */
 class BufferTranslation
 {
-    /**
-     * @var PlainTranslatorInterface
-     */
-    protected $plainTranslator;
+    protected PlainTranslatorInterface $plainTranslator;
 
-    /**
-     * @var BufferContentCollection
-     */
-    protected $bufferContentCollection;
+    protected TextTemplatesCollection $textTemplatesCollection;
 
-    /**
-     * @var BufferContentFactory
-     */
-    protected $bufferContentFactory;
+    protected TextTemplateFactory $textTemplateFactory;
 
-    /**
-     * @var array
-     */
-    protected $defaultBufferContentOptions = [];
+    protected array $defaultBufferContentOptions = [];
 
     public function __construct(
         PlainTranslatorInterface $plainTranslator,
-        KeyGenerator $templatesKeyGenerator = null,
-        KeyGenerator $childTemplatesKeyGenerator = null,
-        BufferContentCollection $bufferContentCollection = null,
-        array $defaultBufferContentOptions = []
+        KeyGenerator             $templatesKeyGenerator = null,
+        KeyGenerator             $childTemplatesKeyGenerator = null,
+        TextTemplatesCollection  $textTemplatesCollection = null,
+        array                    $defaultBufferContentOptions = []
     )
     {
         $templatesKeyGenerator = $templatesKeyGenerator ?: new StaticKeyGenerator('{#bft-', '#}');
         $childTemplatesKeyGenerator = $childTemplatesKeyGenerator ?: new StaticKeyGenerator('{', '}');
 
         $this->plainTranslator = $plainTranslator;
-        $this->bufferContentCollection = $bufferContentCollection ?: new BufferContentCollection($templatesKeyGenerator);
-        $this->bufferContentFactory = new BufferContentFactory($childTemplatesKeyGenerator);
+        $this->textTemplatesCollection = $textTemplatesCollection ?: new TextTemplatesCollection($templatesKeyGenerator);
+        $this->textTemplateFactory = new TextTemplateFactory($childTemplatesKeyGenerator);
         $this->defaultBufferContentOptions = [
-                BufferContent::OPTION_WITH_CONTENT_TRANSLATION => true,
-                BufferContent::OPTION_WITH_FALLBACK=> true,
+                BufferContentOptions::WITH_FALLBACK => true,
             ] + $defaultBufferContentOptions;
     }
 
-    public function add(?string $content, array $params = [], array $options = []): string
+    public function add(
+        ?string $content,
+        array   $params = [],
+        array   $options = [],
+        string  $messageFormat = MessageFormatsEnum::TEXT_TEMPLATE
+    ): string
     {
         if (!$content) {
             return '';
         }
-        $options += $this->defaultBufferContentOptions;
-        $bufferContent = $this->bufferContentFactory->create($content, $params, $options);
 
-        return $this->addBuffer($bufferContent);
+        $textTemplateItem = $this->textTemplateFactory->create($content, $params, $messageFormat);
+        $textTemplateItem->setCustomNotes([
+                BufferContentOptions::WITH_CONTENT_TRANSLATION => true,
+            ] + $options
+        );
+
+        return $this->addTextTemplateItem($textTemplateItem);
     }
 
-    /**
-     * @param BufferContent $bufferContent
-     * @return string
-     */
-    public function addBuffer(BufferContent $bufferContent)
+    public function addTextTemplateItem(TextTemplateItem $textTemplateItem): string
     {
-        return $this->bufferContentCollection->add($bufferContent);
+        return $this->textTemplatesCollection->add($textTemplateItem);
     }
 
-    /**
-     * @param string $contentContext
-     * @return string
-     * @throws \Exception
-     */
-    public function translateBuffer($contentContext)
+    public function translateBuffer(string $contentContext): string
     {
-        $bufferContent = new BufferContent($contentContext, $this->bufferContentCollection, [
-            BufferContent::OPTION_WITH_CONTENT_TRANSLATION => false,
-        ]);
+        $bufferTextTemplate = new TextTemplateItem($contentContext, $this->textTemplatesCollection);
+        $bufferTextTemplate->setCustomNotes([BufferContentOptions::WITH_CONTENT_TRANSLATION => false]);
+
         $bufferTranslate = new BufferTranslator();
+        $bufferTextTemplate = $bufferTranslate->translateTextTemplate(
+            $bufferTextTemplate,
+            $this->plainTranslator,
+            $this->defaultBufferContentOptions
+        );
 
-        return $bufferTranslate->translateBuffer($bufferContent, $this->plainTranslator);
+        $textTemplateResolver = new TextTemplateResolver($this->plainTranslator->getTranslationLanguageAlias());
+
+        return $textTemplateResolver->resolve($bufferTextTemplate);
     }
 
-    /**
-     * @return PlainTranslatorInterface
-     */
-    public function getPlainTranslator()
+    public function flush(): void
+    {
+        $this->textTemplatesCollection = new TextTemplatesCollection($this->textTemplatesCollection->getKeyGenerator());
+    }
+
+    public function getPlainTranslator(): PlainTranslatorInterface
     {
         return $this->plainTranslator;
     }
