@@ -38,7 +38,7 @@ Move created `$bufferTranslation` to document creating process
 </p>
 ```
 
-Use "MessageFormatsEnum::MESSAGE_FORMATTER" for templates from the PECL intl packet "MessageFormatter::formatMessage()" to format a text (example `{0, plural, =0{Zero}=1{One}other{Unknown #}}`). 
+Use "BufferMessageFormatsEnum::MESSAGE_FORMATTER" for templates from the PECL intl packet "MessageFormatter::formatMessage()" to format a text (example `{0, plural, =0{Zero}=1{One}other{Unknown #}}`). 
 ```php
 ?>
 <p>
@@ -48,7 +48,7 @@ Use "MessageFormatsEnum::MESSAGE_FORMATTER" for templates from the PECL intl pac
                 'appleNumbers' => 0,
                 'name' => 'Тома',
             ],
-            'format' => MessageFormatsEnum::MESSAGE_FORMATTER,
+            'format' => BufferMessageFormatsEnum::MESSAGE_FORMATTER,
     ) ?>
     <?= $bufferTranslation->add($stringFromDb, [], [BufferContentOptions::OPTION_WITH_HTML_ENCODING => true]) ?>
 

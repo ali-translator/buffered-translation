@@ -5,7 +5,7 @@ namespace ALI\BufferTranslation\Tests\unit;
 use ALI\BufferTranslation\Buffer\BufferContentOptions;
 use ALI\BufferTranslation\BufferTranslation;
 use ALI\BufferTranslation\Tests\components\Factories\SourceFactory;
-use ALI\TextTemplate\MessageFormat\MessageFormatsEnum;
+use ALI\BufferTranslation\Buffer\BufferMessageFormatsEnum;
 use ALI\Translator\PlainTranslator\PlainTranslatorFactory;
 use ALI\Translator\Source\Exceptions\SourceException;
 use PHPUnit\Framework\TestCase;
@@ -124,25 +124,25 @@ class BufferTranslationTest extends TestCase
 
             $content = $bufferTranslation->add($originalPhrase, [
                 'number' => 0,
-            ], [], MessageFormatsEnum::MESSAGE_FORMATTER);
+            ], [], BufferMessageFormatsEnum::MESSAGE_FORMATTER);
             $translation = $bufferTranslation->translateBuffer($content);
             $this->assertEquals('Zero', $translation);
 
             $content = '<div>' . $bufferTranslation->add($originalPhrase, [
                 'number' => 0,
-            ], [], MessageFormatsEnum::MESSAGE_FORMATTER) .'</div>';
+            ], [], BufferMessageFormatsEnum::MESSAGE_FORMATTER) .'</div>';
             $translation = $bufferTranslation->translateBuffer($content);
             $this->assertEquals('<div>Zero</div>', $translation);
 
             $content = $bufferTranslation->add($originalPhrase, [
                 'number' => 1,
-            ], [], MessageFormatsEnum::MESSAGE_FORMATTER);
+            ], [], BufferMessageFormatsEnum::MESSAGE_FORMATTER);
             $translation = $bufferTranslation->translateBuffer($content);
             $this->assertEquals('One', $translation);
 
             $content = $bufferTranslation->add($originalPhrase, [
                 'number' => 50,
-            ], [], MessageFormatsEnum::MESSAGE_FORMATTER);
+            ], [], BufferMessageFormatsEnum::MESSAGE_FORMATTER);
             $translation = $bufferTranslation->translateBuffer($content);
             $this->assertEquals('Unknown 50', $translation);
 
@@ -151,19 +151,19 @@ class BufferTranslationTest extends TestCase
 
             $content = $bufferTranslation->add($originalPhrase, [
                 'number' => 0,
-            ], [], MessageFormatsEnum::MESSAGE_FORMATTER);
+            ], [], BufferMessageFormatsEnum::MESSAGE_FORMATTER);
             $translation = $bufferTranslation->translateBuffer($content);
             $this->assertEquals('Нуль', $translation);
 
             $content = $bufferTranslation->add($originalPhrase, [
                 'number' => 1,
-            ], [], MessageFormatsEnum::MESSAGE_FORMATTER);
+            ], [], BufferMessageFormatsEnum::MESSAGE_FORMATTER);
             $translation = $bufferTranslation->translateBuffer($content);
             $this->assertEquals('Один', $translation);
 
             $content = $bufferTranslation->add($originalPhrase, [
                 'number' => 50,
-            ], [], MessageFormatsEnum::MESSAGE_FORMATTER);
+            ], [], BufferMessageFormatsEnum::MESSAGE_FORMATTER);
             $translation = $bufferTranslation->translateBuffer($content);
             $this->assertEquals('Невідоме число 50', $translation);
         }
@@ -173,7 +173,7 @@ class BufferTranslationTest extends TestCase
             $bufferTranslation = new BufferTranslation($plainTranslator);
             $content = $bufferTranslation->add('Tom has {appleNumbers, plural, =0{no any apple}=1{one apple}other{many apples}}', [
                 'appleNumbers' => 1,
-            ], [], MessageFormatsEnum::MESSAGE_FORMATTER);
+            ], [], BufferMessageFormatsEnum::MESSAGE_FORMATTER);
             $translation = $bufferTranslation->translateBuffer($content);
             $this->assertEquals('Tom has one apple', $translation);
 
@@ -187,7 +187,7 @@ class BufferTranslationTest extends TestCase
                     'options' => [
                         BufferContentOptions::WITH_CONTENT_TRANSLATION => true,
                     ],
-                    'format' => MessageFormatsEnum::MESSAGE_FORMATTER,
+                    'format' => BufferMessageFormatsEnum::MESSAGE_FORMATTER,
                 ],
             ]);
             $translation = $bufferTranslation->translateBuffer($content);
@@ -212,21 +212,21 @@ class BufferTranslationTest extends TestCase
                         BufferContentOptions::WITH_CONTENT_TRANSLATION => true,
                     ]
                 ],
-            ], [], MessageFormatsEnum::MESSAGE_FORMATTER);
+            ], [], BufferMessageFormatsEnum::MESSAGE_FORMATTER);
             $translation = $bufferTranslation->translateBuffer($content);
             $this->assertEquals('У Тома немає яблук', $translation);
 
             $content = $bufferTranslation->add($originalPhrase, [
                 'appleNumbers' => 1,
                 'name' => 'Тома',
-            ], [], MessageFormatsEnum::MESSAGE_FORMATTER);
+            ], [], BufferMessageFormatsEnum::MESSAGE_FORMATTER);
             $translation = $bufferTranslation->translateBuffer($content);
             $this->assertEquals('У Тома є одне яблуко', $translation);
 
             $content = $bufferTranslation->add($originalPhrase, [
                 'appleNumbers' => 4,
                 'name' => 'Тома',
-            ], [], MessageFormatsEnum::MESSAGE_FORMATTER);
+            ], [], BufferMessageFormatsEnum::MESSAGE_FORMATTER);
             $translation = $bufferTranslation->translateBuffer($content);
             $this->assertEquals('У Тома є багато яблук', $translation);
         }

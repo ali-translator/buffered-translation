@@ -6,7 +6,7 @@ use ALI\BufferTranslation\Buffer\BufferContentOptions;
 use ALI\BufferTranslation\Buffer\BufferTranslator;
 use ALI\TextTemplate\KeyGenerators\KeyGenerator;
 use ALI\TextTemplate\KeyGenerators\StaticKeyGenerator;
-use ALI\TextTemplate\MessageFormat\MessageFormatsEnum;
+use ALI\BufferTranslation\Buffer\BufferMessageFormatsEnum;
 use ALI\TextTemplate\TextTemplateFactory;
 use ALI\TextTemplate\TextTemplateItem;
 use ALI\TextTemplate\TextTemplateResolver;
@@ -46,7 +46,7 @@ class BufferTranslation
         ?string $content,
         array   $params = [],
         array   $options = [],
-        string  $messageFormat = MessageFormatsEnum::TEXT_TEMPLATE
+        string  $messageFormat = BufferMessageFormatsEnum::TEXT_TEMPLATE
     ): string
     {
         if (!$content) {
