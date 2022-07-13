@@ -1,6 +1,9 @@
 # Buffered Translation
 
-Manually pasted text on document for translation, by means of buffering is translated by one approach (helpful for DB sources)
+Manually pasted text on document for translation, by means of buffering is translated by one approach (helpful for DB sources).<br>
+Include vendors:
+ * [ali-translator/text-template](https://github.com/ali-translator/text-template)
+ * [ali-translator/translator](https://github.com/ali-translator/translator) 
 
 ## Installation
 
@@ -33,6 +36,11 @@ Move created `$bufferTranslation` to document creating process
 <p>
     <?= $bufferTranslation->add('Hello {name}', ['name' => 'Tom']) ?>    
 </p>
+```
+
+Use "MessageFormatsEnum::MESSAGE_FORMATTER" for templates from the PECL intl packet "MessageFormatter::formatMessage()" to format a text (example `{0, plural, =0{Zero}=1{One}other{Unknown #}}`). 
+```php
+?>
 <p>
     <?= $bufferTranslation->add(
             '{name} has {appleNumbers, plural, =0{no any apple}=1{one apple}other{many apples}}', 
@@ -91,11 +99,7 @@ $translatedHtml = $bufferTranslation->translateBuffer($html);
 
 ### Options
 Every buffered phrase has translation options parameters, with next features:
-* <b>`BufferContentOptions::OPTION_MESSAGE_FORMAT`</b>
-    * <b>`MessageFormatsEnum::BUFFER_CONTENT`</b> - allow only "plain" parameters, example "{name}",  
-    but also has infinite nesting of parameters.<br> 
-    It is <b>default</b> type
-    * <b>`MessageFormatsEnum::MESSAGE_FORMATTER`</b> - uses PECL intl packet [MessageFormatter::formatMessage](https://www.php.net/manual/ru/messageformatter.formatmessage.php) for text formatting.  
+ 
 * <b>`BufferContentOptions::OPTION_WITH_CONTENT_TRANSLATION`</b> It's bool parameter, which indicates whether to translate included parameter.<br>
 By <b>default</b>, this value is set to <b>"false"</b>.  
 * <b>`BufferContentOptions::OPTION_WITH_FALLBACK`</b> Bool parameter, which determines whether the original text will be returned if no translation is found.<br> 
