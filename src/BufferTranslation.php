@@ -49,8 +49,23 @@ class BufferTranslation
         string  $messageFormat = BufferMessageFormatsEnum::TEXT_TEMPLATE
     ): string
     {
-        if (!$content) {
+        $textTemplateItem = $this->createTextTemplateItem($content, $params, $options, $messageFormat);
+        if (!$textTemplateItem) {
             return '';
+        }
+
+        return $this->addTextTemplateItem($textTemplateItem);
+    }
+
+    public function createTextTemplateItem(
+        ?string $content,
+        array   $params = [],
+        array   $options = [],
+        string  $messageFormat = BufferMessageFormatsEnum::TEXT_TEMPLATE
+    ): ?TextTemplateItem
+    {
+        if (!$content) {
+            return null;
         }
 
         $textTemplateItem = $this->textTemplateFactory->create($content, $params, $messageFormat);
@@ -59,7 +74,7 @@ class BufferTranslation
             ] + $options
         );
 
-        return $this->addTextTemplateItem($textTemplateItem);
+        return $textTemplateItem;
     }
 
     public function addTextTemplateItem(TextTemplateItem $textTemplateItem): string
