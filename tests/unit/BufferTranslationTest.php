@@ -62,6 +62,7 @@ class BufferTranslationTest extends TestCase
 
         $this->checkAdditionalPublicMethods($bufferTranslation);
 
+        $this->checkDefaultChildBuffersTranslation($plainTranslator);
     }
 
     /**
@@ -436,10 +437,27 @@ class BufferTranslationTest extends TestCase
     {
         $bufferTranslation->flush();
         $textTemplate = $bufferTranslation->createTextTemplateItem('Hello {user_name}', [
-            'user_name' => 'Tom'
+            'user_name' => 'Tom',
         ]);
         $content = $bufferTranslation->addTextTemplateItem($textTemplate);
         $translated = $bufferTranslation->translateBuffer($content);
         $this->assertEquals('Hello Tom', $translated);
+    }
+
+    /**
+     * @param PlainTranslator $plainTranslator
+     * @return void
+     */
+    protected function checkDefaultChildBuffersTranslation(PlainTranslator $plainTranslator): void
+    {
+        $bufferTranslation = new BufferTranslation($plainTranslator, null, null, null, [
+            BufferContentOptions::WITH_HTML_ENCODING => true,
+            BufferContentOptions::MODIFIER_CALLBACK => function (string $translation) {
+                return '@' . $translation . '@';
+            },
+        ]);
+        $content = '<p>' . $bufferTranslation->add('<br>') . '</p>';
+        $translation = $bufferTranslation->translateBuffer($content);
+        $this->assertEquals('<p>@&lt;br&gt;@</p>', $translation);
     }
 }

@@ -12,13 +12,13 @@ class BufferTranslator
     public function translateTextTemplate(
         TextTemplateItem         $textTemplateItem,
         PlainTranslatorInterface $plainTranslator,
-        array $defaultBufferContentOptions
+        array $defaultChildBufferContentOptions
     ): TextTemplateItem
     {
         $originalPhraseCollection = new OriginalPhraseCollection($plainTranslator->getSource()->getOriginalLanguageAlias());
         $originalsCollection = (new BufferContentExtractor())->extractOriginals($textTemplateItem, $originalPhraseCollection);
         $translationCollection = $plainTranslator->translateAll($originalsCollection->getAll());
-        $this->translateTextItemRecursive($textTemplateItem, $translationCollection, $defaultBufferContentOptions);
+        $this->translateTextItemRecursive($textTemplateItem, $translationCollection, $defaultChildBufferContentOptions, false);
 
         return $textTemplateItem;
     }
@@ -26,10 +26,11 @@ class BufferTranslator
     protected function translateTextItemRecursive(
         TextTemplateItem $textTemplateItem,
         TranslatePhraseCollection $translationCollection,
-        array $defaultBufferContentOptions
+        array $defaultBufferContentOptions,
+        bool $useDefaultContentOptionsForParent = true
     )
     {
-        $translation = $this->getProcessesTranslation($textTemplateItem, $translationCollection, $defaultBufferContentOptions);
+        $translation = $this->getProcessesTranslation($textTemplateItem, $translationCollection, $useDefaultContentOptionsForParent ? $defaultBufferContentOptions : []);
         $textTemplateItem->setContent($translation);
         $textTemplateItem->setCustomNotes($textTemplateItem->getCustomNotes() +
             [
@@ -52,7 +53,7 @@ class BufferTranslator
         array $defaultBufferContentOptions
     ): string
     {
-        $bufferContentOptions = $defaultBufferContentOptions + $textTemplateItem->getCustomNotes();
+        $bufferContentOptions = $textTemplateItem->getCustomNotes() + $defaultBufferContentOptions;
 
         $original = $textTemplateItem->getContent();
         if (!empty($bufferContentOptions[BufferContentOptions::WITH_CONTENT_TRANSLATION])) {

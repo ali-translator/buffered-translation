@@ -69,9 +69,9 @@ class BufferTranslation
         }
 
         $textTemplateItem = $this->textTemplateFactory->create($content, $params, $messageFormat);
-        $textTemplateItem->setCustomNotes([
+        $textTemplateItem->setCustomNotes($options + [
                 BufferContentOptions::WITH_CONTENT_TRANSLATION => true,
-            ] + $options
+            ]
         );
 
         return $textTemplateItem;
