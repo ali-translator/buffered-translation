@@ -48,7 +48,7 @@ Use "BufferMessageFormatsEnum::MESSAGE_FORMATTER" for templates from the PECL in
                 'appleNumbers' => 0,
                 'name' => 'Тома',
             ],
-            'format' => BufferMessageFormatsEnum::MESSAGE_FORMATTER,
+            BufferMessageFormatsEnum::MESSAGE_FORMATTER,
     ) ?>
     <?= $bufferTranslation->add($stringFromDb, [], [BufferContentOptions::OPTION_WITH_HTML_ENCODING => true]) ?>
 
@@ -59,7 +59,7 @@ Custom post-translation modification
 ```php
 <script>
     alert('<?= $bufferTranslation->add($errorText, [], [
-                  BufferContentOptions::OPTION_MODIFIER_CALLBACK => function (string $translation): string {
+                  BufferContentOptions::MODIFIER_CALLBACK => function (string $translation): string {
                        return Html::escapeJavaScriptStringValue($translation);
                   },
          ]) ?>');
@@ -87,10 +87,11 @@ $html = '<div class="test">' . $bufferTranslation->add('Hello {child}. Hi {objec
                 'secondName' => [
                     'content' => 'Andrea',
                     'options' => [
-                        BufferContentOptions::OPTION_WITH_CONTENT_TRANSLATION => true,
+                        BufferContentOptions::WITH_CONTENT_TRANSLATION => true,
                     ]
                 ],
             ],
+            'format' => BufferMessageFormatsEnum::TEXT_TEMPLATE, // it's default value (for example only)
         ],
         'object' => 'sun',
     ]) . '</div>';
@@ -100,12 +101,12 @@ $translatedHtml = $bufferTranslation->translateBuffer($html);
 ### Options
 Every buffered phrase has translation options parameters, with next features:
  
-* <b>`BufferContentOptions::OPTION_WITH_CONTENT_TRANSLATION`</b> It's bool parameter, which indicates whether to translate included parameter.<br>
+* <b>`BufferContentOptions::WITH_CONTENT_TRANSLATION`</b> It's bool parameter, which indicates whether to translate included parameter.<br>
 By <b>default</b>, this value is set to <b>"false"</b>.  
-* <b>`BufferContentOptions::OPTION_WITH_FALLBACK`</b> Bool parameter, which determines whether the original text will be returned if no translation is found.<br> 
+* <b>`BufferContentOptions::WITH_FALLBACK`</b> Bool parameter, which determines whether the original text will be returned if no translation is found.<br> 
 By <b>default</b>, this value is set to <b>"true"</b>.
-* <b>`BufferContentOptions::OPTION_WITH_HTML_ENCODING`</b> - use html encode for output text 
-* <b>`BufferContentOptions::OPTION_MODIFIER_CALLBACK`</b> - custom post-translation modifier 
+* <b>`BufferContentOptions::WITH_HTML_ENCODING`</b> - use html encode for output text 
+* <b>`BufferContentOptions::MODIFIER_CALLBACK`</b> - custom post-translation modifier 
 
 ### Suggest packets
 * <b>[ali-translator/translator-js-integrate](https://github.com/ali-translator/translator-js-integrate)</b> - Integrate this packet to frontend js
