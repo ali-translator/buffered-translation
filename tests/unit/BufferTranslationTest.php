@@ -6,9 +6,9 @@ use ALI\BufferTranslation\Buffer\BufferContentOptions;
 use ALI\BufferTranslation\BufferTranslation;
 use ALI\BufferTranslation\Tests\components\Factories\SourceFactory;
 use ALI\BufferTranslation\Buffer\BufferMessageFormatsEnum;
+use ALI\TextTemplate\KeyGenerators\StaticKeyGenerator;
 use ALI\Translator\PlainTranslator\PlainTranslator;
 use ALI\Translator\PlainTranslator\PlainTranslatorFactory;
-use ALI\Translator\Source\Exceptions\SourceException;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -19,9 +19,6 @@ class BufferTranslationTest extends TestCase
     const ORIGINAL_LANGUAGE = 'en';
     const CURRENT_LANGUAGE = 'ua';
 
-    /**
-     * @throws SourceException
-     */
     public function test()
     {
         $sourceFactory = new SourceFactory();
@@ -36,6 +33,8 @@ class BufferTranslationTest extends TestCase
         $this->emptyTranslateWithParameter($bufferTranslation);
 
         $this->filledTranslation($bufferTranslation);
+
+        $this->filledPartTranslation($bufferTranslation);
 
         $this->filledTranslationWithParameter($bufferTranslation);
 
@@ -63,12 +62,35 @@ class BufferTranslationTest extends TestCase
         $this->checkAdditionalPublicMethods($bufferTranslation);
 
         $this->checkDefaultChildBuffersTranslation($plainTranslator);
+
+        $this->testTranslateBufferArray($plainTranslator);
     }
 
-    /**
-     * @param PlainTranslator $plainTranslator
-     * @return void
-     */
+    protected function testTranslateBufferArray(PlainTranslator $plainTranslator)
+    {
+        $plainTranslator->getSource()->saveTranslate($plainTranslator->getTranslationLanguageAlias(), 'apples', 'яблока');
+        $plainTranslator->getSource()->saveTranslate($plainTranslator->getTranslationLanguageAlias(), 'chair', 'стілець');
+
+        $parentsTemplatesKeyGenerator = new StaticKeyGenerator('{s','}');
+
+        $bufferTranslation = new BufferTranslation($plainTranslator, $parentsTemplatesKeyGenerator);
+        $bufferTranslation->add('text not included on array');
+        $array = [
+            [
+                'title' => 'some '.$bufferTranslation->add('apples'),
+                'array' => [],
+                'name' => $bufferTranslation->add('chair'),
+            ]
+        ];
+
+        $translatedArray = $bufferTranslation->translateArrayWithBuffers($array, null, true);
+        $this->assertEquals([[
+            "title" => "some яблока",
+            "array" => [],
+            "name" => "стілець",
+        ]],$translatedArray);
+    }
+
     protected function checkBufferTranslationWithCallbackModifier(PlainTranslator $plainTranslator): void
     {
         $bufferTranslation = new BufferTranslation($plainTranslator);
@@ -84,10 +106,6 @@ class BufferTranslationTest extends TestCase
         self::assertEquals('+' . $text . '-' . $text, $translation);
     }
 
-    /**
-     * @param PlainTranslator $plainTranslator
-     * @return void
-     */
     protected function resolveTwoParametersWithTheSameValue(PlainTranslator $plainTranslator): void
     {
         $bufferTranslation = new BufferTranslation($plainTranslator);
@@ -99,10 +117,6 @@ class BufferTranslationTest extends TestCase
         self::assertEquals('11', $translated);
     }
 
-    /**
-     * @param BufferTranslation $bufferTranslation
-     * @return void
-     */
     protected function checkPreventingBufferingExistBufferedKey(BufferTranslation $bufferTranslation): void
     {
         $bufferTranslation->flush();
@@ -115,10 +129,6 @@ class BufferTranslationTest extends TestCase
         self::assertEquals($text, $translation);
     }
 
-    /**
-     * @param BufferTranslation $bufferTranslation
-     * @return void
-     */
     protected function translateWithEncodingAndIncludeParametersWithEncoding(BufferTranslation $bufferTranslation): void
     {
         $bufferTranslation->flush();
@@ -138,10 +148,6 @@ class BufferTranslationTest extends TestCase
         self::assertEquals('<div>This is <h1>H1</h1></div>', html_entity_decode($translation));
     }
 
-    /**
-     * @param BufferTranslation $bufferTranslation
-     * @return void
-     */
     protected function translateWithEncodingAndIncludeParameters(BufferTranslation $bufferTranslation): void
     {
         $bufferTranslation->flush();
@@ -158,10 +164,6 @@ class BufferTranslationTest extends TestCase
         self::assertEquals('<div>This is <h1>H1</h1></div>', html_entity_decode($translation));
     }
 
-    /**
-     * @param BufferTranslation $bufferTranslation
-     * @return void
-     */
     protected function translateWithEncoding(BufferTranslation $bufferTranslation): void
     {
         $bufferTranslation->flush();
@@ -174,11 +176,6 @@ class BufferTranslationTest extends TestCase
         self::assertEquals(html_entity_decode($translation), $text);
     }
 
-    /**
-     * @param BufferTranslation $bufferTranslation
-     * @param PlainTranslator $plainTranslator
-     * @return void
-     */
     protected function pluralWithAnotherTextWITHTranslate(BufferTranslation $bufferTranslation, PlainTranslator $plainTranslator): void
     {
         $bufferTranslation->flush();
@@ -226,10 +223,6 @@ class BufferTranslationTest extends TestCase
         $this->assertEquals('Tom has one apple', $translation);
     }
 
-    /**
-     * @param BufferTranslation $bufferTranslation
-     * @return void
-     */
     protected function pluralWithAnotherTextWithoutTranslateOnDifferentBufferOptions(BufferTranslation $bufferTranslation): void
     {
         $bufferTranslation->flush();
@@ -250,12 +243,6 @@ class BufferTranslationTest extends TestCase
         $this->assertEquals('Tom has one apple', $translation);
     }
 
-    /**
-     * @param BufferTranslation $bufferTranslation
-     * @param PlainTranslator $plainTranslator
-     * @param string $originalPhrase
-     * @return void
-     */
     protected function withTranslation(BufferTranslation $bufferTranslation, PlainTranslator $plainTranslator, string $originalPhrase): void
     {
         $bufferTranslation->flush();
@@ -280,11 +267,6 @@ class BufferTranslationTest extends TestCase
         $this->assertEquals('Невідоме число 50', $translation);
     }
 
-    /**
-     * @param BufferTranslation $bufferTranslation
-     * @param string $originalPhrase
-     * @return void
-     */
     protected function formatMessage(BufferTranslation $bufferTranslation, string $originalPhrase): void
     {
         $bufferTranslation->flush();
@@ -314,10 +296,6 @@ class BufferTranslationTest extends TestCase
         $this->assertEquals('Unknown 50', $translation);
     }
 
-    /**
-     * @param BufferTranslation $bufferTranslation
-     * @return void
-     */
     protected function customBufferContentWithFewChild(BufferTranslation $bufferTranslation): void
     {
         $bufferTranslation->flush();
@@ -350,10 +328,6 @@ class BufferTranslationTest extends TestCase
         $this->assertEquals('<div class="test">Привіт Tom and Андреа. Вітаю sun</div>', $translatedHtml);
     }
 
-    /**
-     * @param BufferTranslation $bufferTranslation
-     * @return void
-     */
     protected function filledTranslationWithFewTheSameParameterName(BufferTranslation $bufferTranslation): void
     {
         $bufferTranslation->flush();
@@ -370,10 +344,6 @@ class BufferTranslationTest extends TestCase
         $bufferTranslation->flush();
     }
 
-    /**
-     * @param BufferTranslation $bufferTranslation
-     * @return void
-     */
     protected function filledTranslationWithParameter(BufferTranslation $bufferTranslation): void
     {
         $bufferTranslation->flush();
@@ -387,10 +357,6 @@ class BufferTranslationTest extends TestCase
         $this->assertEquals('<div class="test">Привіт Tom</div>', $translatedHtml);
     }
 
-    /**
-     * @param BufferTranslation $bufferTranslation
-     * @return void
-     */
     protected function filledTranslation(BufferTranslation $bufferTranslation): void
     {
         $bufferTranslation->flush();
@@ -401,10 +367,18 @@ class BufferTranslationTest extends TestCase
         $this->assertEquals('<div class="test">Привіт</div>', $translatedHtml);
     }
 
-    /**
-     * @param BufferTranslation $bufferTranslation
-     * @return void
-     */
+    protected function filledPartTranslation(BufferTranslation $bufferTranslation): void
+    {
+        $bufferTranslation->flush();
+
+        $html = '<div class="test">' . $bufferTranslation->add('1') . '</div>';
+        $bufferTranslation->add('2');
+
+        $translatedHtml = $bufferTranslation->translateBufferFragment($html);
+
+        $this->assertEquals('<div class="test">1</div>', $translatedHtml);
+    }
+
     protected function emptyTranslateWithParameter(BufferTranslation $bufferTranslation): void
     {
         $bufferTranslation->flush();
@@ -415,10 +389,6 @@ class BufferTranslationTest extends TestCase
         $this->assertEquals('<div class="test">XXX Tom</div>', $translatedHtml);
     }
 
-    /**
-     * @param BufferTranslation $bufferTranslation
-     * @return void
-     */
     protected function emptyTranslate(BufferTranslation $bufferTranslation): void
     {
         $bufferTranslation->flush();
@@ -429,10 +399,6 @@ class BufferTranslationTest extends TestCase
         $this->assertEquals('<div class="test">XXX</div>', $translatedHtml);
     }
 
-    /**
-     * @param BufferTranslation $bufferTranslation
-     * @return void
-     */
     protected function checkAdditionalPublicMethods(BufferTranslation $bufferTranslation): void
     {
         $bufferTranslation->flush();
@@ -444,10 +410,6 @@ class BufferTranslationTest extends TestCase
         $this->assertEquals('Hello Tom', $translated);
     }
 
-    /**
-     * @param PlainTranslator $plainTranslator
-     * @return void
-     */
     protected function checkDefaultChildBuffersTranslation(PlainTranslator $plainTranslator): void
     {
         $bufferTranslation = new BufferTranslation($plainTranslator, null, null, null, [

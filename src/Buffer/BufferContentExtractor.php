@@ -12,7 +12,7 @@ class BufferContentExtractor
         OriginalPhraseCollection $originalPhraseCollection
     ): OriginalPhraseCollection
     {
-        $withTranslation = $textTemplateItem->getCustomNotes()[BufferContentOptions::WITH_CONTENT_TRANSLATION] ?? false;
+        $withTranslation = $textTemplateItem->getCustomOptions()[BufferContentOptions::WITH_CONTENT_TRANSLATION] ?? false;
         if ($withTranslation) {
             $originalPhraseCollection->add($textTemplateItem->getContent());
         }

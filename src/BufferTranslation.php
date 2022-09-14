@@ -4,39 +4,52 @@ namespace ALI\BufferTranslation;
 
 use ALI\BufferTranslation\Buffer\BufferContentOptions;
 use ALI\BufferTranslation\Buffer\BufferTranslator;
+use ALI\BufferTranslation\Helpers\TranslatorForBufferedArray;
 use ALI\TextTemplate\KeyGenerators\KeyGenerator;
 use ALI\TextTemplate\KeyGenerators\StaticKeyGenerator;
 use ALI\BufferTranslation\Buffer\BufferMessageFormatsEnum;
+use ALI\TextTemplate\KeyGenerators\TextKeysHandler;
+use ALI\TextTemplate\MessageFormat\TemplateMessageResolverFactory;
+use ALI\TextTemplate\MessageFormat\TextTemplateMessageResolver;
 use ALI\TextTemplate\TextTemplateFactory;
 use ALI\TextTemplate\TextTemplateItem;
-use ALI\TextTemplate\TextTemplateResolver;
 use ALI\TextTemplate\TextTemplatesCollection;
 use ALI\Translator\PlainTranslator\PlainTranslatorInterface;
 
 class BufferTranslation
 {
+    protected TextKeysHandler $textKeysHandler;
+    protected TextTemplateMessageResolver $textTemplateMessageResolverForParents;
+    protected TextTemplateFactory $textTemplateFactoryForChildren;
+    protected BufferTranslator $bufferTranslator;
+
     protected PlainTranslatorInterface $plainTranslator;
-
+    protected KeyGenerator $parentsTemplatesKeyGenerator;
     protected TextTemplatesCollection $textTemplatesCollection;
-
-    protected TextTemplateFactory $textTemplateFactory;
 
     protected array $defaultBufferContentOptions = [];
 
+    private $bufferedKeys = [];
+
     public function __construct(
         PlainTranslatorInterface $plainTranslator,
-        KeyGenerator             $templatesKeyGenerator = null,
-        KeyGenerator             $childTemplatesKeyGenerator = null,
+        KeyGenerator             $parentsTemplatesKeyGenerator = null,
+        KeyGenerator             $childrenTemplatesKeyGenerator = null,
         TextTemplatesCollection  $textTemplatesCollection = null,
         array                    $defaultBufferContentOptions = []
     )
     {
-        $templatesKeyGenerator = $templatesKeyGenerator ?: new StaticKeyGenerator('{#bft-', '#}');
-        $childTemplatesKeyGenerator = $childTemplatesKeyGenerator ?: new StaticKeyGenerator('{', '}');
+        $this->parentsTemplatesKeyGenerator = $parentsTemplatesKeyGenerator ?: new StaticKeyGenerator('{#bft-', '#}');
+        $childrenTemplatesKeyGenerator = $childrenTemplatesKeyGenerator ?: new StaticKeyGenerator('{', '}');
+        $this->textKeysHandler = new TextKeysHandler();
+        $this->bufferTranslator = new BufferTranslator();
 
         $this->plainTranslator = $plainTranslator;
-        $this->textTemplatesCollection = $textTemplatesCollection ?: new TextTemplatesCollection($templatesKeyGenerator);
-        $this->textTemplateFactory = new TextTemplateFactory($childTemplatesKeyGenerator);
+        $this->textTemplatesCollection = $textTemplatesCollection ?: new TextTemplatesCollection($this->parentsTemplatesKeyGenerator);
+
+        $locale = $plainTranslator->getSource()->getOriginalLanguageAlias();
+        $this->textTemplateMessageResolverForParents = new TextTemplateMessageResolver($this->parentsTemplatesKeyGenerator);
+        $this->textTemplateFactoryForChildren = new TextTemplateFactory(new TemplateMessageResolverFactory($locale, $childrenTemplatesKeyGenerator));
         $this->defaultBufferContentOptions = [
                 BufferContentOptions::WITH_FALLBACK => true,
             ] + $defaultBufferContentOptions;
@@ -49,6 +62,11 @@ class BufferTranslation
         string  $messageFormat = BufferMessageFormatsEnum::TEXT_TEMPLATE
     ): string
     {
+        if (isset($this->bufferedKeys[$content])) {
+            // We skip adding already buffered values
+            return $content;
+        }
+
         $textTemplateItem = $this->createTextTemplateItem($content, $params, $options, $messageFormat);
         if (!$textTemplateItem) {
             return '';
@@ -68,8 +86,8 @@ class BufferTranslation
             return null;
         }
 
-        $textTemplateItem = $this->textTemplateFactory->create($content, $params, $messageFormat);
-        $textTemplateItem->setCustomNotes($options + [
+        $textTemplateItem = $this->textTemplateFactoryForChildren->create($content, $params, $messageFormat);
+        $textTemplateItem->setCustomOptions($options + [
                 BufferContentOptions::WITH_CONTENT_TRANSLATION => true,
             ]
         );
@@ -79,33 +97,84 @@ class BufferTranslation
 
     public function addTextTemplateItem(TextTemplateItem $textTemplateItem): string
     {
-        return $this->textTemplatesCollection->add($textTemplateItem);
+        $textId = $this->textTemplatesCollection->add($textTemplateItem);
+
+        $bufferKey = $this->parentsTemplatesKeyGenerator->generateKey($textId);
+
+        $this->bufferedKeys[$bufferKey] = true;
+
+        return $bufferKey;
     }
 
     public function translateBuffer(string $contentContext): string
     {
-        $bufferTextTemplate = new TextTemplateItem($contentContext, $this->textTemplatesCollection);
-        $bufferTextTemplate->setCustomNotes([BufferContentOptions::WITH_CONTENT_TRANSLATION => false]);
+        return $this->translateBufferWithSpecificTextCollection($contentContext, $this->textTemplatesCollection);
+    }
 
-        $bufferTranslate = new BufferTranslator();
-        $bufferTextTemplate = $bufferTranslate->translateTextTemplate(
+    public function translateBufferFragment(string $partOfContentContext): string
+    {
+        $existKeys = $this->textKeysHandler->getAllKeys($this->parentsTemplatesKeyGenerator, $partOfContentContext);
+        if (!$existKeys) {
+            return $partOfContentContext;
+        }
+
+        $partOfTextTemplatesCollection = $this->textTemplatesCollection->sliceByKeys($existKeys);
+
+        return $this->translateBufferWithSpecificTextCollection($partOfContentContext, $partOfTextTemplatesCollection);
+    }
+
+    private TranslatorForBufferedArray $translatorForBufferedArray;
+
+    public function translateArrayWithBuffers(
+        array  $bufferArray,
+        ?array $columns,
+        bool   $isItBufferFragment
+    ): array
+    {
+        if(!isset($this->translatorForBufferedArray)){
+            $this->translatorForBufferedArray = new TranslatorForBufferedArray();
+        }
+
+        return $this->translatorForBufferedArray->translate(
+            $bufferArray,
+            $this->getTextTemplatesCollection(),
+            $this->plainTranslator,
+            $this->parentsTemplatesKeyGenerator,
+            $columns,
+            $isItBufferFragment,
+            $this->defaultBufferContentOptions
+        );
+    }
+
+    protected function translateBufferWithSpecificTextCollection(
+        string                  $contentContext,
+        TextTemplatesCollection $textTemplatesCollection
+    )
+    {
+        $bufferTextTemplate = new TextTemplateItem($contentContext, $textTemplatesCollection, $this->textTemplateMessageResolverForParents);
+        $bufferTextTemplate->setCustomOptions([BufferContentOptions::WITH_CONTENT_TRANSLATION => false]);
+
+        $translatedTextTemplate = $this->bufferTranslator->translateTextTemplate(
             $bufferTextTemplate,
             $this->plainTranslator,
             $this->defaultBufferContentOptions
         );
 
-        $textTemplateResolver = new TextTemplateResolver($this->plainTranslator->getTranslationLanguageAlias());
-
-        return $textTemplateResolver->resolve($bufferTextTemplate);
+        return $translatedTextTemplate->resolve();
     }
 
     public function flush(): void
     {
-        $this->textTemplatesCollection = new TextTemplatesCollection($this->textTemplatesCollection->getKeyGenerator());
+        $this->textTemplatesCollection->clear();
     }
 
     public function getPlainTranslator(): PlainTranslatorInterface
     {
         return $this->plainTranslator;
+    }
+
+    public function getTextTemplatesCollection(): TextTemplatesCollection
+    {
+        return $this->textTemplatesCollection;
     }
 }

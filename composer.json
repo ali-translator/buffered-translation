@@ -4,7 +4,6 @@
     "keywords": [
         "sli"
     ],
-    "homepage": "https://sli.su/",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -20,7 +19,7 @@
     "require": {
         "php": "^7.4",
         "ali-translator/translator":  "^0",
-        "ali-translator/text-template": "^0",
+        "ali-translator/text-template": "~0.3",
         "ext-intl": "*"
     },
     "autoload": {

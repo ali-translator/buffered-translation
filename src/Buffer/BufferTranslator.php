@@ -32,7 +32,7 @@ class BufferTranslator
     {
         $translation = $this->getProcessesTranslation($textTemplateItem, $translationCollection, $useDefaultContentOptionsForParent ? $defaultBufferContentOptions : []);
         $textTemplateItem->setContent($translation);
-        $textTemplateItem->setCustomNotes($textTemplateItem->getCustomNotes() +
+        $textTemplateItem->setCustomOptions($textTemplateItem->getCustomOptions() +
             [
                 BufferContentOptions::WITH_CONTENT_TRANSLATION => false,
             ]
@@ -53,7 +53,7 @@ class BufferTranslator
         array $defaultBufferContentOptions
     ): string
     {
-        $bufferContentOptions = $textTemplateItem->getCustomNotes() + $defaultBufferContentOptions;
+        $bufferContentOptions = $textTemplateItem->getCustomOptions() + $defaultBufferContentOptions;
 
         $original = $textTemplateItem->getContent();
         if (!empty($bufferContentOptions[BufferContentOptions::WITH_CONTENT_TRANSLATION])) {
