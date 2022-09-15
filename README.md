@@ -97,6 +97,18 @@ $html = '<div class="test">' . $bufferTranslation->add('Hello {child}. Hi {objec
     ]) . '</div>';
 $translatedHtml = $bufferTranslation->translateBuffer($html);
 ```
+Translation is recursive.
+
+### Options
+Every buffered phrase has translation options parameters, with next features:
+ 
+* <b>`BufferContentOptions::WITH_CONTENT_TRANSLATION`</b> It's bool parameter, which indicates whether to translate included parameter.<br>
+By <b>default</b>, this value is set to <b>"false"</b>.  
+* <b>`BufferContentOptions::WITH_FALLBACK`</b> Bool parameter, which determines whether the original text will be returned if no translation is found.<br> 
+By <b>default</b>, this value is set to <b>"true"</b>.
+* <b>`BufferContentOptions::WITH_HTML_ENCODING`</b> - use html encode for output text 
+* <b>`BufferContentOptions::MODIFIER_CALLBACK`</b> - custom post-translation modifier 
+
 
 ### Translation of a fragment of buffered text
 
@@ -118,17 +130,13 @@ this method only translate the found keys in the given context, not all buffered
 $translatedBufferedArray = $bufferTranslation->translateArrayWithBuffers($bufferedArray, $columnsForTrnasl, $columnsForTranslation);
 ```
 
-Translation is recursive.
-
-### Options
-Every buffered phrase has translation options parameters, with next features:
- 
-* <b>`BufferContentOptions::WITH_CONTENT_TRANSLATION`</b> It's bool parameter, which indicates whether to translate included parameter.<br>
-By <b>default</b>, this value is set to <b>"false"</b>.  
-* <b>`BufferContentOptions::WITH_FALLBACK`</b> Bool parameter, which determines whether the original text will be returned if no translation is found.<br> 
-By <b>default</b>, this value is set to <b>"true"</b>.
-* <b>`BufferContentOptions::WITH_HTML_ENCODING`</b> - use html encode for output text 
-* <b>`BufferContentOptions::MODIFIER_CALLBACK`</b> - custom post-translation modifier 
+### Hints
+* If you have already a buffered key and want to use it in another template, you can use this script:
+```php
+$bufferTranslation->add('Some {text}',[
+    'text' => $bufferTranslation->getTextTemplateItemByBufferKey($alreadyBufferedTextKey) 
+]);
+```
 
 ### Suggest packets
 * <b>[ali-translator/translator-js-integrate](https://github.com/ali-translator/translator-js-integrate)</b> - Integrate this packet to frontend js

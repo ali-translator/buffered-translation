@@ -29,7 +29,7 @@ class BufferTranslation
 
     protected array $defaultBufferContentOptions = [];
 
-    private $bufferedKeys = [];
+    private $bufferedKeysWithTemplateIds = [];
 
     public function __construct(
         PlainTranslatorInterface $plainTranslator,
@@ -62,7 +62,7 @@ class BufferTranslation
         string  $messageFormat = BufferMessageFormatsEnum::TEXT_TEMPLATE
     ): string
     {
-        if (isset($this->bufferedKeys[$content])) {
+        if (isset($this->bufferedKeysWithTemplateIds[$content])) {
             // We skip adding already buffered values
             return $content;
         }
@@ -101,7 +101,7 @@ class BufferTranslation
 
         $bufferKey = $this->parentsTemplatesKeyGenerator->generateKey($textId);
 
-        $this->bufferedKeys[$bufferKey] = true;
+        $this->bufferedKeysWithTemplateIds[$bufferKey] = $textId;
 
         return $bufferKey;
     }
@@ -181,6 +181,16 @@ class BufferTranslation
     public function setPlainTranslator(PlainTranslatorInterface $plainTranslator): void
     {
         $this->plainTranslator = $plainTranslator;
+    }
+
+    public function getTextTemplateItemByBufferKey(string $bufferKey): ?TextTemplateItem
+    {
+        $templateId = $this->bufferedKeysWithTemplateIds[$bufferKey] ?? null;
+        if ($templateId === null) {
+            return null;
+        }
+
+        return $this->textTemplatesCollection->get((string)$templateId);
     }
 
     public function getTextTemplatesCollection(): TextTemplatesCollection

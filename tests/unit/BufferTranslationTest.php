@@ -64,6 +64,25 @@ class BufferTranslationTest extends TestCase
         $this->checkDefaultChildBuffersTranslation($plainTranslator);
 
         $this->testTranslateBufferArray($plainTranslator);
+
+        $this->testExtractingTextTemplateByBufferKey($plainTranslator);
+    }
+
+    protected function testExtractingTextTemplateByBufferKey(PlainTranslator $plainTranslator)
+    {
+        $bufferTranslation = new BufferTranslation($plainTranslator);
+
+        $text = 'TEXT';
+
+        $bufferKey = $bufferTranslation->add($text);
+        $templateText = $bufferTranslation->getTextTemplateItemByBufferKey($bufferKey);
+
+        $this->assertEquals($text, $templateText->resolve());
+
+        $bufferKey = $bufferTranslation->add('Some {text}',[
+            'text' =>  $templateText
+        ]);
+        $this->assertEquals('Some '. $text, $bufferTranslation->translateBuffer($bufferKey));
     }
 
     protected function testTranslateBufferArray(PlainTranslator $plainTranslator)
