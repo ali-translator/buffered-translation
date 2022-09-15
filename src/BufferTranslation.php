@@ -178,6 +178,11 @@ class BufferTranslation
         return $this->plainTranslator;
     }
 
+    public function setPlainTranslator(PlainTranslatorInterface $plainTranslator): void
+    {
+        $this->plainTranslator = $plainTranslator;
+    }
+
     public function getTextTemplatesCollection(): TextTemplatesCollection
     {
         return $this->textTemplatesCollection;
