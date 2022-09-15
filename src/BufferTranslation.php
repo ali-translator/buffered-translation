@@ -170,6 +170,7 @@ class BufferTranslation
 
     public function flush(): void
     {
+        $this->bufferedKeysWithTemplateIds = [];
         $this->textTemplatesCollection->clear();
     }
 
