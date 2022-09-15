@@ -111,6 +111,7 @@ class BufferTranslation
         return $this->translateBufferWithSpecificTextCollection($contentContext, $this->textTemplatesCollection);
     }
 
+    // If you don't need to translate the entire buffer, but only the existing keys in the text
     public function translateBufferFragment(string $partOfContentContext): string
     {
         $existKeys = $this->textKeysHandler->getAllKeys($this->parentsTemplatesKeyGenerator, $partOfContentContext);
@@ -125,9 +126,13 @@ class BufferTranslation
 
     private TranslatorForBufferedArray $translatorForBufferedArray;
 
+    /**
+     * @param array|null $columnsForTranslation - null means "all string columns"
+     * @param bool $isItBufferFragment - Choose whether you want to translate the entire buffer or only the existing keys in the text
+     */
     public function translateArrayWithBuffers(
         array  $bufferArray,
-        ?array $columns,
+        ?array $columnsForTranslation,
         bool   $isItBufferFragment
     ): array
     {
@@ -140,7 +145,7 @@ class BufferTranslation
             $this->getTextTemplatesCollection(),
             $this->plainTranslator,
             $this->parentsTemplatesKeyGenerator,
-            $columns,
+            $columnsForTranslation,
             $isItBufferFragment,
             $this->defaultBufferContentOptions
         );

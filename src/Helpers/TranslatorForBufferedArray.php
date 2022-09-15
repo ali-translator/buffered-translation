@@ -21,18 +21,22 @@ class TranslatorForBufferedArray
         $this->bufferTranslator = new BufferTranslator();
     }
 
+    /**
+     * @param array|null $columnsForTranslation - null means "all string columns"
+     * @param bool $isItBufferFragment - Choose whether you want to translate the entire buffer or only the existing keys in the text
+     */
     public function translate(
         array                    $arraysWithContents,
         TextTemplatesCollection  $textTemplatesCollection,
         PlainTranslatorInterface $plainTranslator,
         KeyGenerator             $keyGenerator,
-        ?array                   $columns,
+        ?array                   $columnsForTranslation,
         bool                     $isItBufferFragment,
-        array $defaultChildBufferContentOptions
+        array                    $defaultChildBufferContentOptions
     ): array
     {
         if ($isItBufferFragment) {
-            $existTextsIs = $this->getUserTextItemIds($arraysWithContents, $columns, $keyGenerator);
+            $existTextsIs = $this->getUserTextItemIds($arraysWithContents, $columnsForTranslation, $keyGenerator);
             if (!$existTextsIs) {
                 return $arraysWithContents;
             }
@@ -45,7 +49,7 @@ class TranslatorForBufferedArray
         $combinedTextItemText = new TextTemplateItem('', $textTemplatesCollection);
         $translatedCombinedTextItemText = $this->bufferTranslator->translateTextTemplate($combinedTextItemText, $plainTranslator, $defaultChildBufferContentOptions);
 
-        return $this->replaceArrayBufferedValues($translatedCombinedTextItemText, $arraysWithContents, $columns, $keyGenerator);
+        return $this->replaceArrayBufferedValues($translatedCombinedTextItemText, $arraysWithContents, $columnsForTranslation, $keyGenerator);
     }
 
     protected function mapColumns(

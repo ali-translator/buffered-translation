@@ -98,6 +98,28 @@ $html = '<div class="test">' . $bufferTranslation->add('Hello {child}. Hi {objec
 $translatedHtml = $bufferTranslation->translateBuffer($html);
 ```
 
+### Translation of a fragment of buffered text
+
+If you only need to translate a single piece of buffered text, you should use the "translateBufferFragment" method:
+```php
+$translatedHtml = $bufferTranslation->translateBuffer($pieceOfHtml);
+```
+this method only translate the found keys in the given context, not all buffered text.
+
+### Translation of buffered array
+
+<b>! Translation of buffered arrays is less efficient than normal translation of compiled text, and should not be considered as a primary option.</b>
+
+```php
+/**
+* @param array|null $columnsForTranslation - null means "all string columns"
+* @param bool $isItBufferFragment - Choose whether you want to translate the entire buffer or only the existing keys in the text
+ */
+$translatedBufferedArray = $bufferTranslation->translateArrayWithBuffers($bufferedArray, $columnsForTrnasl, $columnsForTranslation);
+```
+
+Translation is recursive.
+
 ### Options
 Every buffered phrase has translation options parameters, with next features:
  
