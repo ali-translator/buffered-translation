@@ -6,14 +6,11 @@ use ALI\BufferTranslation\Buffer\BufferContentOptions;
 use ALI\BufferTranslation\BufferTranslation;
 use ALI\BufferTranslation\Tests\components\Factories\SourceFactory;
 use ALI\BufferTranslation\Buffer\BufferMessageFormatsEnum;
-use ALI\TextTemplate\KeyGenerators\StaticKeyGenerator;
+use ALI\TextTemplate\TemplateResolver\Template\KeyGenerators\StaticKeyGenerator;
 use ALI\Translator\PlainTranslator\PlainTranslator;
 use ALI\Translator\PlainTranslator\PlainTranslatorFactory;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Class
- */
 class BufferTranslationTest extends TestCase
 {
     const ORIGINAL_LANGUAGE = 'en';

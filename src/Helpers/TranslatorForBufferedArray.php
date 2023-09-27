@@ -3,8 +3,8 @@
 namespace ALI\BufferTranslation\Helpers;
 
 use ALI\BufferTranslation\Buffer\BufferTranslator;
-use ALI\TextTemplate\KeyGenerators\KeyGenerator;
-use ALI\TextTemplate\KeyGenerators\TextKeysHandler;
+use ALI\TextTemplate\TemplateResolver\Template\KeyGenerators\KeyGenerator;
+use ALI\TextTemplate\TemplateResolver\Template\KeyGenerators\TextKeysHandler;
 use ALI\TextTemplate\TextTemplateItem;
 use ALI\TextTemplate\TextTemplatesCollection;
 use ALI\Translator\PlainTranslator\PlainTranslatorInterface;

@@ -5,12 +5,15 @@ namespace ALI\BufferTranslation;
 use ALI\BufferTranslation\Buffer\BufferContentOptions;
 use ALI\BufferTranslation\Buffer\BufferTranslator;
 use ALI\BufferTranslation\Helpers\TranslatorForBufferedArray;
-use ALI\TextTemplate\KeyGenerators\KeyGenerator;
-use ALI\TextTemplate\KeyGenerators\StaticKeyGenerator;
+use ALI\TextTemplate\TemplateResolver\Template\KeyGenerators\KeyGenerator;
+use ALI\TextTemplate\TemplateResolver\Template\KeyGenerators\StaticKeyGenerator;
 use ALI\BufferTranslation\Buffer\BufferMessageFormatsEnum;
-use ALI\TextTemplate\KeyGenerators\TextKeysHandler;
-use ALI\TextTemplate\MessageFormat\TemplateMessageResolverFactory;
-use ALI\TextTemplate\MessageFormat\TextTemplateMessageResolver;
+use ALI\TextTemplate\TemplateResolver\Template\KeyGenerators\TextKeysHandler;
+use ALI\TextTemplate\TemplateResolver\Template\LogicVariables\Handlers\DefaultHandlers\DefaultHandlersFacade;
+use ALI\TextTemplate\TemplateResolver\Template\LogicVariables\Handlers\HandlersRepository;
+use ALI\TextTemplate\TemplateResolver\Template\LogicVariables\LogicVariableParser;
+use ALI\TextTemplate\TemplateResolver\TemplateMessageResolverFactory;
+use ALI\TextTemplate\TemplateResolver\Template\TextTemplateMessageResolver;
 use ALI\TextTemplate\TextTemplateFactory;
 use ALI\TextTemplate\TextTemplateItem;
 use ALI\TextTemplate\TextTemplatesCollection;
@@ -45,10 +48,14 @@ class BufferTranslation
         $this->bufferTranslator = new BufferTranslator();
 
         $this->plainTranslator = $plainTranslator;
-        $this->textTemplatesCollection = $textTemplatesCollection ?: new TextTemplatesCollection($this->parentsTemplatesKeyGenerator);
+        $this->textTemplatesCollection = $textTemplatesCollection ?: new TextTemplatesCollection();
 
         $locale = $plainTranslator->getSource()->getOriginalLanguageAlias();
-        $this->textTemplateMessageResolverForParents = new TextTemplateMessageResolver($this->parentsTemplatesKeyGenerator);
+        $this->textTemplateMessageResolverForParents = new TextTemplateMessageResolver(
+            $this->parentsTemplatesKeyGenerator,
+            (new DefaultHandlersFacade())->registerHandlers(new HandlersRepository(), null),
+            new LogicVariableParser()
+        );
         $this->textTemplateFactoryForChildren = new TextTemplateFactory(new TemplateMessageResolverFactory($locale, $childrenTemplatesKeyGenerator));
         $this->defaultBufferContentOptions = [
                 BufferContentOptions::WITH_FALLBACK => true,

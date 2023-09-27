@@ -25,7 +25,7 @@ use ALI\Translator\PlainTranslator\PlainTranslator;
 $bufferTranslation = new BufferTranslation($plainTranslator);
 ```
 
-Move created `$bufferTranslation` to document creating process 
+Move created `$bufferTranslation` to document creating process :
 
 ```php
 /** @var \ALI\BufferTranslation\BufferTranslation $bufferTranslation */
@@ -38,24 +38,21 @@ Move created `$bufferTranslation` to document creating process
 </p>
 ```
 
-Use "BufferMessageFormatsEnum::MESSAGE_FORMATTER" for templates from the PECL intl packet "MessageFormatter::formatMessage()" to format a text (example `{0, plural, =0{Zero}=1{One}other{Unknown #}}`). 
+Use "logical variable" for plural templates: 
 ```php
 ?>
 <p>
     <?= $bufferTranslation->add(
-            '{name} has {appleNumbers, plural, =0{no any apple}=1{one apple}other{many apples}}', 
+            '{name} has {|plural(appleNumbers,"=0[no one apple] =1[one apple] other[many apples]")}', 
             [
                 'appleNumbers' => 0,
-                'name' => 'Тома',
-            ],
-            BufferMessageFormatsEnum::MESSAGE_FORMATTER,
+                'name' => 'Tom',
+            ]
     ) ?>
-    <?= $bufferTranslation->add($stringFromDb, [], [BufferContentOptions::OPTION_WITH_HTML_ENCODING => true]) ?>
-
-    <?= $bufferTranslation->add($stringFromDb, [], [BufferContentOptions::OPTION_WITH_HTML_ENCODING => true]) ?>   
+    <?= $bufferTranslation->add($stringFromDb, [], [BufferContentOptions::OPTION_WITH_HTML_ENCODING => true]) ?>  
 </p>
 ```
-Custom post-translation modification
+Custom post-translation modification:
 ```php
 <script>
     alert('<?= $bufferTranslation->add($errorText, [], [
@@ -66,7 +63,7 @@ Custom post-translation modification
 </script>
 ```
 
-And next, translate this buffered document
+And then translate this buffer document:
 
 ```php
 use ALI\BufferTranslation\BufferTranslation;
@@ -91,13 +88,18 @@ $html = '<div class="test">' . $bufferTranslation->add('Hello {child}. Hi {objec
                     ]
                 ],
             ],
-            'format' => BufferMessageFormatsEnum::TEXT_TEMPLATE, // it's default value (for example only)
         ],
         'object' => 'sun',
     ]) . '</div>';
 $translatedHtml = $bufferTranslation->translateBuffer($html);
 ```
 Translation is recursive.
+
+
+### Logical variables
+Template support is implemented on the basis of the "[ali-translator/text-template](https://github.com/ali-translator/text-template)" package, which also supports "logical variables". These are variables that use "functions" to modify content. More details can be found at the link to the package.<br>
+Example:<br>
+```Поїздка {|uk_choosePrepositionBySonority('Поїздка', 'в/у', 'Львів')} Львів```
 
 ### Options
 Every buffered phrase has translation options parameters, with next features:

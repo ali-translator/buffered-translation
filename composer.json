@@ -19,7 +19,7 @@
     "require": {
         "php": "^7.4",
         "ali-translator/translator":  "^0",
-        "ali-translator/text-template": "~0.3",
+        "ali-translator/text-template": "^1",
         "ext-intl": "*"
     },
     "autoload": {
