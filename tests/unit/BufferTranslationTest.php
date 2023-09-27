@@ -63,6 +63,18 @@ class BufferTranslationTest extends TestCase
         $this->testTranslateBufferArray($plainTranslator);
 
         $this->testExtractingTextTemplateByBufferKey($plainTranslator);
+
+        $this->testTemplatesWithLogicVariables($bufferTranslation, $plainTranslator);
+    }
+
+    protected function testTemplatesWithLogicVariables(BufferTranslation $bufferTranslation)
+    {
+        $template = "Tom {|print('has')} {|plural(appleNumbers,'=0[no one apple] =1[one apple] other[many apples]')}";
+        $bufferKey = $bufferTranslation->add($template, [
+            'appleNumbers' => 1,
+        ]);
+
+        $this->assertEquals('Tom has one apple', $bufferTranslation->translateBuffer($bufferKey));
     }
 
     protected function testExtractingTextTemplateByBufferKey(PlainTranslator $plainTranslator)
