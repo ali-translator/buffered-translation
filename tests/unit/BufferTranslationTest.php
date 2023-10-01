@@ -18,20 +18,21 @@ class BufferTranslationTest extends TestCase
 {
     const ORIGINAL_LANGUAGE_ALIAS = 'en';
     const ORIGINAL_LANGUAGE_ISO = 'en';
+
     const TRANSLATION_FOR_LANGUAGE_ALIAS = 'ua';
     const TRANSLATION_FOR_LANGUAGE_ISO = 'ua';
 
     public function test()
     {
         $languageRepository = new ArrayLanguageRepository();
-        $languageRepository->save(new Language(self::ORIGINAL_LANGUAGE_ISO, 'English', self::ORIGINAL_LANGUAGE_ALIAS), true);
-        $languageRepository->save(new Language(self::TRANSLATION_FOR_LANGUAGE_ISO, 'English', self::TRANSLATION_FOR_LANGUAGE_ALIAS), true);
+        $languageRepository->save(new Language(SourceFactory::ORIGINAL_LANGUAGE_ISO, 'English', SourceFactory::ORIGINAL_LANGUAGE_ALIAS), true);
+        $languageRepository->save(new Language(SourceFactory::TRANSLATION_FOR_LANGUAGE_ISO, 'Ukrainian', SourceFactory::TRANSLATION_FOR_LANGUAGE_ALIAS), true);
 
         $sourceFactory = new SourceFactory();
-        $source = $sourceFactory->generateSource(self::ORIGINAL_LANGUAGE_ALIAS, self::TRANSLATION_FOR_LANGUAGE_ALIAS);
+        $source = $sourceFactory->generateSource(SourceFactory::ORIGINAL_LANGUAGE_ALIAS);
 
-        $source->saveTranslate(self::TRANSLATION_FOR_LANGUAGE_ALIAS, 'Hello', 'Привіт');
-        $plainTranslator = (new PlainTranslatorFactory())->createPlainTranslator($source, self::TRANSLATION_FOR_LANGUAGE_ALIAS);
+        $source->saveTranslate(SourceFactory::TRANSLATION_FOR_LANGUAGE_ALIAS, 'Hello', 'Привіт');
+        $plainTranslator = (new PlainTranslatorFactory())->createPlainTranslator($source, SourceFactory::TRANSLATION_FOR_LANGUAGE_ALIAS);
         $bufferTranslation = new BufferTranslation($plainTranslator, $languageRepository);
 
         $this->emptyTranslate($bufferTranslation);
@@ -140,7 +141,7 @@ class BufferTranslationTest extends TestCase
         ]);
         $content .= $bufferTranslation->add($text);
         $translation = $bufferTranslation->translateBuffer($content);
-        self::assertEquals('+' . $text . '-' . $text, $translation);
+        $this->assertEquals('+' . $text . '-' . $text, $translation);
     }
 
     protected function resolveTwoParametersWithTheSameValue(BufferTranslation $bufferTranslation): void
@@ -151,7 +152,7 @@ class BufferTranslationTest extends TestCase
             'b' => 1,
         ]);
         $translated = $bufferTranslation->translateBuffer($bufferedContent);
-        self::assertEquals('11', $translated);
+        $this->assertEquals('11', $translated);
     }
 
     protected function checkPreventingBufferingExistBufferedKey(BufferTranslation $bufferTranslation): void
@@ -160,10 +161,10 @@ class BufferTranslationTest extends TestCase
         $text = 'TEXT';
         $content1 = $bufferTranslation->add($text);
         $content2 = $bufferTranslation->add($content1);
-        self::assertEquals($content1, $content2);
+        $this->assertEquals($content1, $content2);
         $content3 = $bufferTranslation->add($content2);
         $translation = $bufferTranslation->translateBuffer($content3);
-        self::assertEquals($text, $translation);
+        $this->assertEquals($text, $translation);
     }
 
     protected function translateWithEncodingAndIncludeParametersWithEncoding(BufferTranslation $bufferTranslation): void
@@ -181,8 +182,8 @@ class BufferTranslationTest extends TestCase
         ]);
         $translation = $bufferTranslation->translateBuffer($content);
 
-        self::assertEquals('&lt;div&gt;This is &lt;h1&gt;H1&lt;/h1&gt;&lt;/div&gt;', $translation);
-        self::assertEquals('<div>This is <h1>H1</h1></div>', html_entity_decode($translation));
+        $this->assertEquals('&lt;div&gt;This is &lt;h1&gt;H1&lt;/h1&gt;&lt;/div&gt;', $translation);
+        $this->assertEquals('<div>This is <h1>H1</h1></div>', html_entity_decode($translation));
     }
 
     protected function translateWithEncodingAndIncludeParameters(BufferTranslation $bufferTranslation): void
@@ -197,8 +198,8 @@ class BufferTranslationTest extends TestCase
         ]);
         $translation = $bufferTranslation->translateBuffer($content);
 
-        self::assertEquals('&lt;div&gt;This is <h1>H1</h1>&lt;/div&gt;', $translation);
-        self::assertEquals('<div>This is <h1>H1</h1></div>', html_entity_decode($translation));
+        $this->assertEquals('&lt;div&gt;This is <h1>H1</h1>&lt;/div&gt;', $translation);
+        $this->assertEquals('<div>This is <h1>H1</h1></div>', html_entity_decode($translation));
     }
 
     protected function translateWithEncoding(BufferTranslation $bufferTranslation): void
@@ -209,8 +210,8 @@ class BufferTranslationTest extends TestCase
             BufferContentOptions::WITH_HTML_ENCODING => true,
         ]);
         $translation = $bufferTranslation->translateBuffer($content);
-        self::assertEquals('&lt;div class="test"&gt;Tom&lt;/div&gt;', $translation);
-        self::assertEquals(html_entity_decode($translation), $text);
+        $this->assertEquals('&lt;div class="test"&gt;Tom&lt;/div&gt;', $translation);
+        $this->assertEquals(html_entity_decode($translation), $text);
     }
 
     protected function pluralWithAnotherTextWITHTranslate(BufferTranslation $bufferTranslation, PlainTranslator $plainTranslator): void
@@ -338,13 +339,13 @@ class BufferTranslationTest extends TestCase
         $bufferTranslation->flush();
         $source = $bufferTranslation->getPlainTranslator()->getSource();
         $source
-            ->saveTranslate(self::TRANSLATION_FOR_LANGUAGE_ALIAS, 'Hello {child}. Hi {object}', 'Привіт {child}. Вітаю {object}');
+            ->saveTranslate(SourceFactory::TRANSLATION_FOR_LANGUAGE_ALIAS, 'Hello {child}. Hi {object}', 'Привіт {child}. Вітаю {object}');
         // This translation will be used on for translate one of parameters
         $source
-            ->saveTranslate(self::TRANSLATION_FOR_LANGUAGE_ALIAS, 'Andrea', 'Андреа');
+            ->saveTranslate(SourceFactory::TRANSLATION_FOR_LANGUAGE_ALIAS, 'Andrea', 'Андреа');
         // This translation will be skipped
         $source
-            ->saveTranslate(self::TRANSLATION_FOR_LANGUAGE_ALIAS, 'Tom', 'Том');
+            ->saveTranslate(SourceFactory::TRANSLATION_FOR_LANGUAGE_ALIAS, 'Tom', 'Том');
 
         $html = '<div class="test">' . $bufferTranslation->add('Hello {child}. Hi {object}', [
                 'child' => [
@@ -369,7 +370,7 @@ class BufferTranslationTest extends TestCase
     {
         $bufferTranslation->flush();
         $bufferTranslation->getPlainTranslator()->getSource()
-            ->saveTranslate(self::TRANSLATION_FOR_LANGUAGE_ALIAS, 'Hello {name}', 'Привіт {name}');
+            ->saveTranslate(SourceFactory::TRANSLATION_FOR_LANGUAGE_ALIAS, 'Hello {name}', 'Привіт {name}');
 
         $html = '<div class="test">' .
             $bufferTranslation->add('Hello {name}', ['name' => 'Tom']) . '. '
@@ -386,7 +387,7 @@ class BufferTranslationTest extends TestCase
         $bufferTranslation->flush();
 
         $bufferTranslation->getPlainTranslator()->getSource()
-            ->saveTranslate(self::TRANSLATION_FOR_LANGUAGE_ALIAS, 'Hello {name}', 'Привіт {name}');
+            ->saveTranslate(SourceFactory::TRANSLATION_FOR_LANGUAGE_ALIAS, 'Hello {name}', 'Привіт {name}');
 
         $html = '<div class="test">' . $bufferTranslation->add('Hello {name}', ['name' => 'Tom']) . '</div>';
         $translatedHtml = $bufferTranslation->translateBuffer($html);

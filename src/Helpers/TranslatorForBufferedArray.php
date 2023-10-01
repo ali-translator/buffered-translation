@@ -47,7 +47,7 @@ class TranslatorForBufferedArray
         }
 
         $combinedTextItemText = new TextTemplateItem('', $textTemplatesCollection);
-        $translatedCombinedTextItemText = $this->bufferTranslator->translateTextTemplate($combinedTextItemText, $plainTranslator, $defaultChildBufferContentOptions);
+        $translatedCombinedTextItemText = $this->bufferTranslator->translateTextTemplate($combinedTextItemText, $plainTranslator, $defaultChildBufferContentOptions, null);
 
         return $this->replaceArrayBufferedValues($translatedCombinedTextItemText, $arraysWithContents, $columnsForTranslation, $keyGenerator);
     }

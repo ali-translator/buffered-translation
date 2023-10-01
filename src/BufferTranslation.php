@@ -22,6 +22,9 @@ use ALI\Translator\PlainTranslator\PlainTranslatorInterface;
 
 class BufferTranslation
 {
+    static int $autoIncrementIdKey = 0;
+
+    protected int $serviceId;
     protected TextKeysHandler $textKeysHandler;
     protected TextTemplateMessageResolver $textTemplateMessageResolverForParents;
     protected TextTemplateFactory $textTemplateFactoryForChildren;
@@ -45,6 +48,8 @@ class BufferTranslation
         ?HandlersRepository $customLogicVariableHandlersRepository = null
     )
     {
+        $this->serviceId = static::$autoIncrementIdKey++;
+
         $this->parentsTemplatesKeyGenerator = $parentsTemplatesKeyGenerator ?: new StaticKeyGenerator('{#bft-', '#}');
         $childrenTemplatesKeyGenerator = $childrenTemplatesKeyGenerator ?: new StaticKeyGenerator('{', '}');
         $this->textKeysHandler = new TextKeysHandler();
@@ -103,6 +108,21 @@ class BufferTranslation
         return $this->addTextTemplateItem($textTemplateItem);
     }
 
+    public function createAndAddTextTemplateItem(
+        ?string $content,
+        array   $params = [],
+        array   $options = [],
+        string  $messageFormat = BufferMessageFormatsEnum::TEXT_TEMPLATE
+    ): ?TextTemplateItem
+    {
+        $textTemplateItem = $this->createTextTemplateItem($content, $params, $options, $messageFormat);
+        if ($textTemplateItem) {
+            $this->addTextTemplateItem($textTemplateItem);
+        }
+
+        return $textTemplateItem;
+    }
+
     public function createTextTemplateItem(
         ?string $content,
         array   $params = [],
@@ -116,6 +136,7 @@ class BufferTranslation
 
         $textTemplateItem = $this->textTemplateFactoryForChildren->create($content, $params, $messageFormat);
         $textTemplateItem->setCustomOptions($options + [
+                BufferContentOptions::CREATED_BY_BUFFER_SERVICE_ID => $this->serviceId,
                 BufferContentOptions::WITH_CONTENT_TRANSLATION => true,
             ]
         );
@@ -185,15 +206,29 @@ class BufferTranslation
     )
     {
         $bufferTextTemplate = new TextTemplateItem($contentContext, $textTemplatesCollection, $this->textTemplateMessageResolverForParents);
+        $translatedBufferTextTemplate = $this->translateBufferTextTemplate($bufferTextTemplate);
+
+        return $translatedBufferTextTemplate->resolve();
+    }
+
+    // It can be useful when you use several buffers, and there is an overlap in the use of templates of one buffer by another
+    // In this case, you can translate all the templates of all the buffers, and "resolve" only one of them.
+    public function preTranslateAllInsideTextTemplates(): void
+    {
+        $bufferTextTemplate = new TextTemplateItem('', $this->textTemplatesCollection, $this->textTemplateMessageResolverForParents);
+        $this->translateBufferTextTemplate($bufferTextTemplate);
+    }
+
+    protected function translateBufferTextTemplate(TextTemplateItem $bufferTextTemplate): TextTemplateItem
+    {
         $bufferTextTemplate->setCustomOptions([BufferContentOptions::WITH_CONTENT_TRANSLATION => false]);
 
-        $translatedTextTemplate = $this->bufferTranslator->translateTextTemplate(
+        return $this->bufferTranslator->translateTextTemplate(
             $bufferTextTemplate,
             $this->plainTranslator,
-            $this->defaultBufferContentOptions
+            $this->defaultBufferContentOptions,
+            $this->serviceId
         );
-
-        return $translatedTextTemplate->resolve();
     }
 
     public function flush(): void

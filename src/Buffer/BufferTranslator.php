@@ -12,13 +12,24 @@ class BufferTranslator
     public function translateTextTemplate(
         TextTemplateItem         $textTemplateItem,
         PlainTranslatorInterface $plainTranslator,
-        array $defaultChildBufferContentOptions
+        array $defaultChildBufferContentOptions,
+        ?int $bufferServiceId
     ): TextTemplateItem
     {
         $originalPhraseCollection = new OriginalPhraseCollection($plainTranslator->getSource()->getOriginalLanguageAlias());
-        $originalsCollection = (new BufferContentExtractor())->extractOriginals($textTemplateItem, $originalPhraseCollection);
-        $translationCollection = $plainTranslator->translateAll($originalsCollection->getAll());
-        $this->translateTextItemRecursive($textTemplateItem, $translationCollection, $defaultChildBufferContentOptions, false);
+        $originalsCollectionForTranslation = (new BufferContentExtractor())->extractOriginalsForTranslate(
+            $textTemplateItem,
+            $originalPhraseCollection,
+            $bufferServiceId
+        );
+        $translationCollection = $plainTranslator->translateAll($originalsCollectionForTranslation->getAll());
+        $this->translateTextItemRecursive(
+            $textTemplateItem,
+            $translationCollection,
+            $defaultChildBufferContentOptions,
+            $bufferServiceId,
+            false,
+        );
 
         return $textTemplateItem;
     }
@@ -27,21 +38,33 @@ class BufferTranslator
         TextTemplateItem $textTemplateItem,
         TranslatePhraseCollection $translationCollection,
         array $defaultBufferContentOptions,
+        ?int $bufferServiceId,
         bool $useDefaultContentOptionsForParent = true
     )
     {
+        $customOptions = $textTemplateItem->getCustomOptions();
+        if (
+            !empty($customOptions[BufferContentOptions::CREATED_BY_BUFFER_SERVICE_ID])
+            && $bufferServiceId
+            && $customOptions[BufferContentOptions::CREATED_BY_BUFFER_SERVICE_ID] !== $bufferServiceId
+        ) {
+            // This "TextTemplateItem" from another "BufferTranslation" service - skip it
+            return $textTemplateItem;
+        }
+
         [$translation, $translationLanguageAlias] = $this->getProcessesTranslation($textTemplateItem, $translationCollection, $useDefaultContentOptionsForParent ? $defaultBufferContentOptions : []);
         $textTemplateItem->setContent($translation);
-        $textTemplateItem->setCustomOptions($textTemplateItem->getCustomOptions() +
+        $textTemplateItem->setCustomOptions($customOptions +
             [
                 BufferContentOptions::WITH_CONTENT_TRANSLATION => false,
                 BufferContentOptions::CONTENT_LANGUAGE_ALIAS => $translationLanguageAlias,
+                BufferContentOptions::ALREADY_TRANSLATED => true,
             ]
         );
 
         if ($textTemplateItem->getChildTextTemplatesCollection()) {
             foreach ($textTemplateItem->getChildTextTemplatesCollection()->getArray() as $childTextTemplateItem) {
-                $this->translateTextItemRecursive($childTextTemplateItem, $translationCollection, $defaultBufferContentOptions);
+                $this->translateTextItemRecursive($childTextTemplateItem, $translationCollection, $defaultBufferContentOptions, $bufferServiceId, true);
             }
         }
 

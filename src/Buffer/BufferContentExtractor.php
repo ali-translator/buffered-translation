@@ -7,18 +7,34 @@ use ALI\Translator\PhraseCollection\OriginalPhraseCollection;
 
 class BufferContentExtractor
 {
-    public function extractOriginals(
+    public function extractOriginalsForTranslate(
         TextTemplateItem $textTemplateItem,
-        OriginalPhraseCollection $originalPhraseCollection
+        OriginalPhraseCollection $originalPhraseCollection,
+        ?int $bufferServiceId
     ): OriginalPhraseCollection
     {
-        $withTranslation = $textTemplateItem->getCustomOptions()[BufferContentOptions::WITH_CONTENT_TRANSLATION] ?? false;
+        $customOptions = $textTemplateItem->getCustomOptions();
+        if (!empty($customOptions[BufferContentOptions::ALREADY_TRANSLATED])) {
+            // This "TextTemplateItem" is already translated
+            return $originalPhraseCollection;
+        }
+
+        if (
+            !empty($customOptions[BufferContentOptions::CREATED_BY_BUFFER_SERVICE_ID])
+            && $bufferServiceId
+            && $customOptions[BufferContentOptions::CREATED_BY_BUFFER_SERVICE_ID] !== $bufferServiceId
+        ) {
+            // This "TextTemplateItem" from another "BufferTranslation" service - skip it
+            return $originalPhraseCollection;
+        }
+
+        $withTranslation = $customOptions[BufferContentOptions::WITH_CONTENT_TRANSLATION] ?? false;
         if ($withTranslation) {
             $originalPhraseCollection->add($textTemplateItem->getContent());
         }
         if ($textTemplateItem->getChildTextTemplatesCollection()) {
             foreach ($textTemplateItem->getChildTextTemplatesCollection()->getArray() as $childTextTemplate) {
-                $this->extractOriginals($childTextTemplate, $originalPhraseCollection);
+                $this->extractOriginalsForTranslate($childTextTemplate, $originalPhraseCollection, $bufferServiceId);
             }
         }
 

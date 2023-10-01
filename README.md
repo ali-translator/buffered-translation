@@ -19,10 +19,12 @@ at first you need create `$translator` and wrapper, with vector of his translati
 ```php
 use ALI\BufferTranslation\BufferTranslation;
 use ALI\Translator\PlainTranslator\PlainTranslator;
+use ALI\Translator\Languages\LanguageRepositoryInterface;
 
 /** @var PlainTranslator $plainTranslator */
+/** @var LanguageRepositoryInterface $languageRepository */
 
-$bufferTranslation = new BufferTranslation($plainTranslator);
+$bufferTranslation = new BufferTranslation($plainTranslator, $languageRepository);
 ```
 
 Move created `$bufferTranslation` to document creating process :
@@ -139,6 +141,21 @@ $bufferTranslation->add('Some {text}',[
     'text' => $bufferTranslation->getTextTemplateItemByBufferKey($alreadyBufferedTextKey) 
 ]);
 ```
+* If you use several BufferedTranslation services at once (for example, the language of texts in the code and dynamic texts from the database is different) -  and you need to use the translation of one of the texts in the second template, it is recommended to do so:
+```php
+$buffer = $firstBufferTranslation->add('Some {text}',[
+    'text' => $secondBufferTranslation->createAndAddTextTemplateItem('текст') 
+]);
+```
+Later, before "resolve", you need to call the "preTranslateAllInsideTextTemplates" method, which will translate all registered templates:
+```php
+$firstBufferTranslation->preTranslateAllInsideTextTemplates();
+$secondBufferTranslation->preTranslateAllInsideTextTemplates();
+
+$buffer = $firstBufferTranslation->translateBuffer($buffer);
+$result = $secondBufferTranslation->translateBuffer($buffer);
+```
+More details can be found in the test code: [./tests/unit/FewBufferTranslationServiceAtOnceTest.php](./tests/unit/FewBufferTranslationServiceAtOnceTest.php)
 
 ### Suggest packets
 * <b>[ali-translator/translator-js-integrate](https://github.com/ali-translator/translator-js-integrate)</b> - Integrate this packet to frontend js
