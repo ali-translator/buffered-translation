@@ -8,4 +8,5 @@ class BufferContentOptions
     const WITH_FALLBACK = 3;
     const WITH_HTML_ENCODING = 4;
     const MODIFIER_CALLBACK = 5;
+    const CONTENT_LANGUAGE_ALIAS = 6;
 }

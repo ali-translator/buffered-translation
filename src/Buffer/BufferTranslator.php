@@ -30,11 +30,12 @@ class BufferTranslator
         bool $useDefaultContentOptionsForParent = true
     )
     {
-        $translation = $this->getProcessesTranslation($textTemplateItem, $translationCollection, $useDefaultContentOptionsForParent ? $defaultBufferContentOptions : []);
+        [$translation, $translationLanguageAlias] = $this->getProcessesTranslation($textTemplateItem, $translationCollection, $useDefaultContentOptionsForParent ? $defaultBufferContentOptions : []);
         $textTemplateItem->setContent($translation);
         $textTemplateItem->setCustomOptions($textTemplateItem->getCustomOptions() +
             [
                 BufferContentOptions::WITH_CONTENT_TRANSLATION => false,
+                BufferContentOptions::CONTENT_LANGUAGE_ALIAS => $translationLanguageAlias,
             ]
         );
 
@@ -51,26 +52,33 @@ class BufferTranslator
         TextTemplateItem $textTemplateItem,
         TranslatePhraseCollection $translationCollection,
         array $defaultBufferContentOptions
-    ): string
+    ): array
     {
         $bufferContentOptions = $textTemplateItem->getCustomOptions() + $defaultBufferContentOptions;
 
         $original = $textTemplateItem->getContent();
         if (!empty($bufferContentOptions[BufferContentOptions::WITH_CONTENT_TRANSLATION])) {
             $withFallback = $bufferContentOptions[BufferContentOptions::WITH_FALLBACK] ?? true;
-            $translate = $translationCollection->getTranslate($textTemplateItem->getContent(), $withFallback);
+            $translation = $translationCollection->getTranslate($textTemplateItem->getContent(), false);
+            if ($translation) {
+                $translationLanguageAlias = $translationCollection->getTranslationLanguageAlias();
+            } else {
+                $translation = $withFallback ? $original : '';
+                $translationLanguageAlias = $translationCollection->getOriginalLanguageAlias();
+            }
         } else {
-            $translate = $original;
+            $translation = $original;
+            $translationLanguageAlias = $translationCollection->getOriginalLanguageAlias();
         }
 
         if (!empty($bufferContentOptions[BufferContentOptions::WITH_HTML_ENCODING])) {
-            $translate = htmlspecialchars($translate, ENT_NOQUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8', false);
+            $translation = htmlspecialchars($translation, ENT_NOQUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8', false);
         }
         $modifierCallback = $bufferContentOptions[BufferContentOptions::MODIFIER_CALLBACK] ?? null;
         if ($modifierCallback) {
-            $translate = $modifierCallback($translate);
+            $translation = $modifierCallback($translation);
         }
 
-        return (string)$translate;
+        return [(string)$translation, $translationLanguageAlias];
     }
 }

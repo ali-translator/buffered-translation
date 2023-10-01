@@ -32,14 +32,15 @@ class BufferTranslation
 
     protected array $defaultBufferContentOptions = [];
 
-    private $bufferedKeysWithTemplateIds = [];
+    private array $bufferedKeysWithTemplateIds = [];
 
     public function __construct(
         PlainTranslatorInterface $plainTranslator,
         KeyGenerator             $parentsTemplatesKeyGenerator = null,
         KeyGenerator             $childrenTemplatesKeyGenerator = null,
         TextTemplatesCollection  $textTemplatesCollection = null,
-        array                    $defaultBufferContentOptions = []
+        array                    $defaultBufferContentOptions = [],
+        ?HandlersRepository $customLogicVariableHandlersRepository = null
     )
     {
         $this->parentsTemplatesKeyGenerator = $parentsTemplatesKeyGenerator ?: new StaticKeyGenerator('{#bft-', '#}');
@@ -50,13 +51,28 @@ class BufferTranslation
         $this->plainTranslator = $plainTranslator;
         $this->textTemplatesCollection = $textTemplatesCollection ?: new TextTemplatesCollection();
 
-        $locale = $plainTranslator->getSource()->getOriginalLanguageAlias();
+        // Resolver for "root" templates
         $this->textTemplateMessageResolverForParents = new TextTemplateMessageResolver(
             $this->parentsTemplatesKeyGenerator,
-            (new DefaultHandlersFacade())->registerHandlers(new HandlersRepository(), null),
+            new HandlersRepository(), // in parent level no handlers we need
             new LogicVariableParser()
         );
-        $this->textTemplateFactoryForChildren = new TextTemplateFactory(new TemplateMessageResolverFactory($locale, $childrenTemplatesKeyGenerator));
+
+        // Resolver for "children" templates
+        $originalLanguageAlias = $plainTranslator->getSource()->getOriginalLanguageAlias();
+        $logicVariableHandlersRepository = (new DefaultHandlersFacade())->registerHandlers(
+            $customLogicVariableHandlersRepository ?: new HandlersRepository(),
+            null // here, in the future, it will be possible to pass the LanguageISO array of the source and target languages,
+            // but I'm not adding it now so as not to need the "LanguageRepositoryInterface" dependency.
+            // Since only "languageAlias" is used at this level, and ISOs are needed to register certain handlers
+        );
+        $this->textTemplateFactoryForChildren = new TextTemplateFactory(new TemplateMessageResolverFactory(
+            $originalLanguageAlias,
+            $childrenTemplatesKeyGenerator,
+            $logicVariableHandlersRepository
+        ));
+
+        // These options are used and set in TextTemplatesItem only before translation
         $this->defaultBufferContentOptions = [
                 BufferContentOptions::WITH_FALLBACK => true,
             ] + $defaultBufferContentOptions;
@@ -70,7 +86,7 @@ class BufferTranslation
     ): string
     {
         if (isset($this->bufferedKeysWithTemplateIds[$content])) {
-            // We skip adding already buffered values
+            // Skip adding already buffered values
             return $content;
         }
 
@@ -118,7 +134,7 @@ class BufferTranslation
         return $this->translateBufferWithSpecificTextCollection($contentContext, $this->textTemplatesCollection);
     }
 
-    // If you don't need to translate the entire buffer, but only the existing keys in the text
+    // If you don't need to translate the entire buffer, but only the keys that exist in the provided text
     public function translateBufferFragment(string $partOfContentContext): string
     {
         $existKeys = $this->textKeysHandler->getAllKeys($this->parentsTemplatesKeyGenerator, $partOfContentContext);
