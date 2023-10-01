@@ -17,6 +17,7 @@ use ALI\TextTemplate\TemplateResolver\Template\TextTemplateMessageResolver;
 use ALI\TextTemplate\TextTemplateFactory;
 use ALI\TextTemplate\TextTemplateItem;
 use ALI\TextTemplate\TextTemplatesCollection;
+use ALI\Translator\Languages\LanguageRepositoryInterface;
 use ALI\Translator\PlainTranslator\PlainTranslatorInterface;
 
 class BufferTranslation
@@ -36,6 +37,7 @@ class BufferTranslation
 
     public function __construct(
         PlainTranslatorInterface $plainTranslator,
+        LanguageRepositoryInterface $languageRepository,
         KeyGenerator             $parentsTemplatesKeyGenerator = null,
         KeyGenerator             $childrenTemplatesKeyGenerator = null,
         TextTemplatesCollection  $textTemplatesCollection = null,
@@ -51,6 +53,12 @@ class BufferTranslation
         $this->plainTranslator = $plainTranslator;
         $this->textTemplatesCollection = $textTemplatesCollection ?: new TextTemplatesCollection();
 
+        // Get languages ISO
+        $originalLanguageAlias = $plainTranslator->getSource()->getOriginalLanguageAlias();
+        $originalLanguageISO = $languageRepository->find($originalLanguageAlias)->getIsoCode();
+        $translationLanguageAlias = $plainTranslator->getTranslationLanguageAlias();
+        $translationLanguageISO = $languageRepository->find($translationLanguageAlias)->getIsoCode();
+
         // Resolver for "root" templates
         $this->textTemplateMessageResolverForParents = new TextTemplateMessageResolver(
             $this->parentsTemplatesKeyGenerator,
@@ -59,15 +67,12 @@ class BufferTranslation
         );
 
         // Resolver for "children" templates
-        $originalLanguageAlias = $plainTranslator->getSource()->getOriginalLanguageAlias();
         $logicVariableHandlersRepository = (new DefaultHandlersFacade())->registerHandlers(
             $customLogicVariableHandlersRepository ?: new HandlersRepository(),
-            null // here, in the future, it will be possible to pass the LanguageISO array of the source and target languages,
-            // but I'm not adding it now so as not to need the "LanguageRepositoryInterface" dependency.
-            // Since only "languageAlias" is used at this level, and ISOs are needed to register certain handlers
+            [$translationLanguageISO, $originalLanguageISO] // "$translationLanguageISO" -  main language, "$originalLanguageISO" - for "fallbacks" (if original has no translations)
         );
         $this->textTemplateFactoryForChildren = new TextTemplateFactory(new TemplateMessageResolverFactory(
-            $originalLanguageAlias,
+            $translationLanguageISO,
             $childrenTemplatesKeyGenerator,
             $logicVariableHandlersRepository
         ));
