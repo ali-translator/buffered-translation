@@ -45,7 +45,7 @@ Use "logical variable" for plural templates:
 ?>
 <p>
     <?= $bufferTranslation->add(
-            '{name} has {|plural(appleNumbers,"=0[no one apple] =1[one apple] other[many apples]")}', 
+            '{name} has {plural(appleNumbers,"=0[no one apple] =1[one apple] other[many apples]")}', 
             [
                 'appleNumbers' => 0,
                 'name' => 'Tom',
@@ -101,7 +101,7 @@ Translation is recursive.
 ### Logical variables
 Template support is implemented on the basis of the "[ali-translator/text-template](https://github.com/ali-translator/text-template)" package, which also supports "logical variables". These are variables that use "functions" to modify content. More details can be found at the link to the package.<br>
 Example:<br>
-```Поїздка {|uk_choosePrepositionBySonority('Поїздка', 'в/у', 'Львів')} Львів```
+```Поїздка {uk_choosePrepositionBySonority('Поїздка', 'в/у', 'Львів')} Львів```
 
 ### Options
 Every buffered phrase has translation options parameters, with next features:

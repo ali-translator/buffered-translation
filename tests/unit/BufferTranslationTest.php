@@ -79,7 +79,7 @@ class BufferTranslationTest extends TestCase
 
     protected function testTemplatesWithLogicVariables(BufferTranslation $bufferTranslation)
     {
-        $template = "Tom {|print('has')} {|plural(appleNumbers,'=0[no one apple] =1[one apple] other[many apples]')}";
+        $template = "Tom {print('has')} {plural(appleNumbers,'=0[no one apple] =1[one apple] other[many apples]')}";
         $bufferKey = $bufferTranslation->add($template, [
             'appleNumbers' => 1,
         ]);
