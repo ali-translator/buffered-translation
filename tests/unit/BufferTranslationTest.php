@@ -75,6 +75,26 @@ class BufferTranslationTest extends TestCase
         $this->testExtractingTextTemplateByBufferKey($bufferTranslation);
 
         $this->testTemplatesWithLogicVariables($bufferTranslation);
+
+        $this->testThatBufferItemTranslatedOnlyOnce($bufferTranslation);
+    }
+
+    protected function testThatBufferItemTranslatedOnlyOnce(BufferTranslation $bufferTranslation)
+    {
+        $template = "Hi Tom!";
+        $modifierCallback = function (string $translation) {
+            return $translation . '@';
+        };
+        $bufferKey = $bufferTranslation->add($template, [], [
+            BufferContentOptions::MODIFIER_CALLBACK => $modifierCallback
+        ]);
+
+        // Few translation calls
+        $bufferTranslation->translateBuffer($bufferKey);
+        $bufferTranslation->translateBuffer($bufferKey);
+        $translation = $bufferTranslation->translateBuffer($bufferKey);
+
+        $this->assertEquals($modifierCallback($template), $translation);
     }
 
     protected function testTemplatesWithLogicVariables(BufferTranslation $bufferTranslation)

@@ -52,15 +52,18 @@ class BufferTranslator
             return $textTemplateItem;
         }
 
-        [$translation, $translationLanguageAlias] = $this->getProcessesTranslation($textTemplateItem, $translationCollection, $useDefaultContentOptionsForParent ? $defaultBufferContentOptions : []);
-        $textTemplateItem->setContent($translation);
-        $textTemplateItem->setCustomOptions($customOptions +
-            [
-                BufferContentOptions::WITH_CONTENT_TRANSLATION => false,
-                BufferContentOptions::CONTENT_LANGUAGE_ALIAS => $translationLanguageAlias,
-                BufferContentOptions::ALREADY_TRANSLATED => true,
-            ]
-        );
+        // Only for items that have not been processed before (some of the same modifications with translation may have an incorrect effect)
+        if (empty($customOptions[BufferContentOptions::ALREADY_TRANSLATED])) {
+            [$translation, $translationLanguageAlias] = $this->getProcessesTranslation($textTemplateItem, $translationCollection, $useDefaultContentOptionsForParent ? $defaultBufferContentOptions : []);
+            $textTemplateItem->setContent($translation);
+            $textTemplateItem->setCustomOptions($customOptions +
+                [
+                    BufferContentOptions::WITH_CONTENT_TRANSLATION => false,
+                    BufferContentOptions::CONTENT_LANGUAGE_ALIAS => $translationLanguageAlias,
+                    BufferContentOptions::ALREADY_TRANSLATED => true,
+                ]
+            );
+        }
 
         if ($textTemplateItem->getChildTextTemplatesCollection()) {
             foreach ($textTemplateItem->getChildTextTemplatesCollection()->getArray() as $childTextTemplateItem) {
