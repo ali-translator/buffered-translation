@@ -17,6 +17,7 @@ use ALI\TextTemplate\TemplateResolver\Template\TextTemplateMessageResolver;
 use ALI\TextTemplate\TextTemplateFactory;
 use ALI\TextTemplate\TextTemplateItem;
 use ALI\TextTemplate\TextTemplatesCollection;
+use ALI\Translator\Languages\Language;
 use ALI\Translator\Languages\LanguageRepositoryInterface;
 use ALI\Translator\PlainTranslator\PlainTranslatorInterface;
 
@@ -35,8 +36,10 @@ class BufferTranslation
     protected TextTemplatesCollection $textTemplatesCollection;
 
     protected array $defaultBufferContentOptions = [];
-
     private array $bufferedKeysWithTemplateIds = [];
+
+    protected Language $originalLanguage;
+    protected Language $translationLanguage;
 
     public function __construct(
         PlainTranslatorInterface $plainTranslator,
@@ -60,9 +63,11 @@ class BufferTranslation
 
         // Get languages ISO
         $originalLanguageAlias = $plainTranslator->getSource()->getOriginalLanguageAlias();
-        $originalLanguageISO = $languageRepository->find($originalLanguageAlias)->getIsoCode();
+        $this->originalLanguage = $languageRepository->find($originalLanguageAlias);
+        $originalLanguageISO = $this->originalLanguage->getIsoCode();
         $translationLanguageAlias = $plainTranslator->getTranslationLanguageAlias();
-        $translationLanguageISO = $languageRepository->find($translationLanguageAlias)->getIsoCode();
+        $this->translationLanguage = $languageRepository->find($translationLanguageAlias);
+        $translationLanguageISO = $this->translationLanguage->getIsoCode();
 
         // Resolver for "root" templates
         $this->textTemplateMessageResolverForParents = new TextTemplateMessageResolver(
@@ -198,6 +203,16 @@ class BufferTranslation
             $isItBufferFragment,
             $this->defaultBufferContentOptions
         );
+    }
+
+    public function getOriginalLanguage(): Language
+    {
+        return $this->originalLanguage;
+    }
+
+    public function getTranslationLanguage(): Language
+    {
+        return $this->translationLanguage;
     }
 
     protected function translateBufferWithSpecificTextCollection(
