@@ -1,7 +1,6 @@
 # Buffered Translation
 
-Manually pasted text on document for translation, by means of buffering is translated by one approach (helpful for DB sources).<br>
-Include vendors:
+Manually pasted text in a document for translation, using buffering, is translated by one approach (helpful for DB sources). This package includes the following vendors:
  * [ali-translator/text-template](https://github.com/ali-translator/text-template)
  * [ali-translator/translator](https://github.com/ali-translator/translator) 
 
@@ -12,9 +11,8 @@ $ composer require ali-translator/buffered-translation
 ```
 
 ### Quick start
-
-Since this package extended from <b>[ali-translator/translator](https://github.com/ali-translator/translator)</b>,
-at first you need create `$translator` and wrapper, with vector of his translation - `$plaiTranslator`
+Since this package extends from <b>[ali-translator/translator](https://github.com/ali-translator/translator)</b>,
+you need to create `$translator` and a wrapper with the vector of its translation - `$plainTranslator`.
 
 ```php
 use ALI\BufferTranslation\BufferTranslation;
@@ -27,7 +25,7 @@ use ALI\Translator\Languages\LanguageRepositoryInterface;
 $bufferTranslation = new BufferTranslation($plainTranslator, $languageRepository);
 ```
 
-Move created `$bufferTranslation` to document creating process :
+Move the created `$bufferTranslation` to the document creation process:
 
 ```php
 /** @var \ALI\BufferTranslation\BufferTranslation $bufferTranslation */
@@ -40,7 +38,7 @@ Move created `$bufferTranslation` to document creating process :
 </p>
 ```
 
-Use "logical variable" for plural templates: 
+Use "logical variables" for plural templates:
 ```php
 ?>
 <p>
@@ -65,7 +63,7 @@ Custom post-translation modification:
 </script>
 ```
 
-And then translate this buffer document:
+And then translate this buffered document:
 
 ```php
 use ALI\BufferTranslation\BufferTranslation;
@@ -76,7 +74,7 @@ use ALI\BufferTranslation\BufferTranslation;
 echo $bufferTranslation->translateBuffer($html);
 ```
 
-### Multiple level parameters, and they options
+### Multiple Level Parameters and Their Options
 
 ```php
 $html = '<div class="test">' . $bufferTranslation->add('Hello {child}. Hi {object}', [
@@ -104,27 +102,25 @@ Example:<br>
 ```Поїздка {uk_choosePrepositionBySonority('Поїздка', 'в/у', 'Львів')} Львів```
 
 ### Options
-Every buffered phrase has translation options parameters, with next features:
+Every buffered phrase has translation options parameters, with the following features:
  
-* <b>`BufferContentOptions::WITH_CONTENT_TRANSLATION`</b> It's bool parameter, which indicates whether to translate included parameter.<br>
-By <b>default</b>, this value is set to <b>"false"</b>.  
-* <b>`BufferContentOptions::WITH_FALLBACK`</b> Bool parameter, which determines whether the original text will be returned if no translation is found.<br> 
-By <b>default</b>, this value is set to <b>"true"</b>.
-* <b>`BufferContentOptions::WITH_HTML_ENCODING`</b> - use html encode for output text 
-* <b>`BufferContentOptions::MODIFIER_CALLBACK`</b> - custom post-translation modifier 
+* <b>`BufferContentOptions::WITH_CONTENT_TRANSLATION`</b> - This boolean parameter indicates whether to translate included parameters. By default, this value is set to "false".  
+* <b>`BufferContentOptions::WITH_FALLBACK`</b> This boolean parameter determines whether the original text will be returned if no translation is found. By default, this value is set to "true".
+* <b>`BufferContentOptions::WITH_HTML_ENCODING`</b> - Use HTML encoding for output text.
+* <b>`BufferContentOptions::MODIFIER_CALLBACK`</b> - Custom post-translation modifier. 
 
 
-### Translation of a fragment of buffered text
+### Translation of a Fragment of Buffered Text
 
-If you only need to translate a single piece of buffered text, you should use the "translateBufferFragment" method:
+If you only need to translate a single piece of buffered text, use the translateBufferFragment method:
 ```php
 $translatedHtml = $bufferTranslation->translateBuffer($pieceOfHtml);
 ```
-this method only translate the found keys in the given context, not all buffered text.
+This method only translates the found keys in the given context, not all buffered text.
 
-### Translation of buffered array
+### Translation of Buffered Array
 
-<b>! Translation of buffered arrays is less efficient than normal translation of compiled text, and should not be considered as a primary option.</b>
+Note: Translation of buffered arrays is less efficient than normal translation of compiled text and should not be considered as a primary option.
 
 ```php
 /**
@@ -135,19 +131,19 @@ $translatedBufferedArray = $bufferTranslation->translateArrayWithBuffers($buffer
 ```
 
 ### Hints
-* If you have already a buffered key and want to use it in another template, you can use this script:
+* If you already have a buffered key and want to use it in another template, you can use this script:
 ```php
 $bufferTranslation->add('Some {text}',[
     'text' => $bufferTranslation->getTextTemplateItemByBufferKey($alreadyBufferedTextKey) 
 ]);
 ```
-* If you use several BufferedTranslation services at once (for example, the language of texts in the code and dynamic texts from the database is different) -  and you need to use the translation of one of the texts in the second template, it is recommended to do so:
+* If you use several BufferedTranslation services at once (for example, if the language of texts in the code and dynamic texts from the database is different) and you need to use the translation of one of the texts in the second template, it is recommended to do so:
 ```php
 $buffer = $firstBufferTranslation->add('Some {text}',[
     'text' => $secondBufferTranslation->createAndAddTextTemplateItem('текст') 
 ]);
 ```
-Later, before "resolve", you need to call the "preTranslateAllInsideTextTemplates" method, which will translate all registered templates:
+Later, before "resolve", you need to call the preTranslateAllInsideTextTemplates method, which will translate all registered templates:
 ```php
 $firstBufferTranslation->preTranslateAllInsideTextTemplates();
 $secondBufferTranslation->preTranslateAllInsideTextTemplates();
