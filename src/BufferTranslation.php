@@ -23,7 +23,7 @@ use ALI\Translator\PlainTranslator\PlainTranslatorInterface;
 
 class BufferTranslation
 {
-    static int $autoIncrementIdKey = 0;
+    static int $autoIncrementIdKey = 1;
 
     protected int $serviceId;
     protected TextKeysHandler $textKeysHandler;

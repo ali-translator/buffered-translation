@@ -40,12 +40,12 @@ class BufferTranslator
         array $defaultBufferContentOptions,
         ?int $bufferServiceId,
         bool $useDefaultContentOptionsForParent = true
-    )
+    ): TextTemplateItem
     {
         $customOptions = $textTemplateItem->getCustomOptions();
         if (
-            !empty($customOptions[BufferContentOptions::CREATED_BY_BUFFER_SERVICE_ID])
-            && $bufferServiceId
+            isset($customOptions[BufferContentOptions::CREATED_BY_BUFFER_SERVICE_ID])
+            && $bufferServiceId !== null
             && $customOptions[BufferContentOptions::CREATED_BY_BUFFER_SERVICE_ID] !== $bufferServiceId
         ) {
             // This "TextTemplateItem" from another "BufferTranslation" service - skip it
