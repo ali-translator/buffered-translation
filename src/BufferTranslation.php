@@ -149,9 +149,12 @@ class BufferTranslation
         return $textTemplateItem;
     }
 
-    public function addTextTemplateItem(TextTemplateItem $textTemplateItem): string
+    public function addTextTemplateItem(TextTemplateItem &$textTemplateItem): string
     {
         $textId = $this->textTemplatesCollection->add($textTemplateItem);
+        // perhaps the id of an existing object was returned to us,
+        // so we need to get the required object from the storage by this id
+        $textTemplateItem = $this->textTemplatesCollection->get($textId);
 
         $bufferKey = $this->parentsTemplatesKeyGenerator->generateKey($textId);
 
