@@ -108,6 +108,7 @@ Every buffered phrase has translation options parameters, with the following fea
 * <b>`BufferContentOptions::WITH_FALLBACK`</b> This boolean parameter determines whether the original text will be returned if no translation is found. By default, this value is set to "true".
 * <b>`BufferContentOptions::WITH_HTML_ENCODING`</b> - Use HTML encoding for output text.
 * <b>`BufferContentOptions::MODIFIER_CALLBACK`</b> - Custom post-translation modifier. 
+* <b>`BufferContentOptions::FINALLY_MODIFIER_CALLBACK`</b> - A custom modifier that is called after translation and after resolving all children. 
 
 
 ### Translation of a Fragment of Buffered Text

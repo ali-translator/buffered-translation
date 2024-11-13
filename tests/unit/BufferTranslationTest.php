@@ -82,11 +82,15 @@ class BufferTranslationTest extends TestCase
     protected function testThatBufferItemTranslatedOnlyOnce(BufferTranslation $bufferTranslation)
     {
         $template = "Hi Tom!";
-        $modifierCallback = function (string $translation) {
+        $modifierCallbackOne = function (string $translation) {
             return $translation . '@';
         };
+        $modifierCallbackTwo = function (string $translation) {
+            return $translation . '#';
+        };
         $bufferKey = $bufferTranslation->add($template, [], [
-            BufferContentOptions::MODIFIER_CALLBACK => $modifierCallback
+            BufferContentOptions::MODIFIER_CALLBACK => $modifierCallbackOne,
+            BufferContentOptions::FINALLY_MODIFIER_CALLBACK => $modifierCallbackTwo
         ]);
 
         // Few translation calls
@@ -94,7 +98,7 @@ class BufferTranslationTest extends TestCase
         $bufferTranslation->translateBuffer($bufferKey);
         $translation = $bufferTranslation->translateBuffer($bufferKey);
 
-        $this->assertEquals($modifierCallback($template), $translation);
+        $this->assertEquals($modifierCallbackTwo($modifierCallbackOne($template)), $translation);
     }
 
     protected function testTemplatesWithLogicVariables(BufferTranslation $bufferTranslation)
@@ -153,15 +157,32 @@ class BufferTranslationTest extends TestCase
     {
         $bufferTranslation->flush();
 
+        // Multiple attempts to translate the same text with translation callback
+        $modifier = fn(string $translation): string => '+' . $translation . '-';
         $text = 'TEXT';
         $content = $bufferTranslation->add($text, [], [
-            BufferContentOptions::MODIFIER_CALLBACK => function (string $translation): string {
-                return '+' . $translation . '-';
-            },
+            BufferContentOptions::MODIFIER_CALLBACK => $modifier,
         ]);
         $content .= $bufferTranslation->add($text);
+
         $translation = $bufferTranslation->translateBuffer($content);
-        $this->assertEquals('+' . $text . '-' . $text, $translation);
+        $this->assertEquals($modifier($text) . $text, $translation);
+
+        // Check both the “translation modifier” and the “final translation modifier”
+        $text = '1213 {number}';
+        $content = $bufferTranslation->add($text, [
+            'number' => [
+                'content' => '3231',
+                'options' => [
+                    BufferContentOptions::MODIFIER_CALLBACK => fn(string $translation): string => str_replace('2', '@', $translation),
+                ]
+            ],
+        ], [
+            BufferContentOptions::MODIFIER_CALLBACK => fn(string $translation): string => str_replace('1', '%', $translation),
+            BufferContentOptions::FINALLY_MODIFIER_CALLBACK => fn(string $translation): string => str_replace('3', '#', $translation),
+        ]);
+
+        $this->assertEquals('%2%# #@#1', $bufferTranslation->translateBuffer($content));
     }
 
     protected function resolveTwoParametersWithTheSameValue(BufferTranslation $bufferTranslation): void
