@@ -44,9 +44,9 @@ class BufferTranslation
     public function __construct(
         PlainTranslatorInterface $plainTranslator,
         LanguageRepositoryInterface $languageRepository,
-        KeyGenerator             $parentsTemplatesKeyGenerator = null,
-        KeyGenerator             $childrenTemplatesKeyGenerator = null,
-        TextTemplatesCollection  $textTemplatesCollection = null,
+        ?KeyGenerator             $parentsTemplatesKeyGenerator = null,
+        ?KeyGenerator             $childrenTemplatesKeyGenerator = null,
+        ?TextTemplatesCollection  $textTemplatesCollection = null,
         array                    $defaultBufferContentOptions = [],
         ?HandlersRepository $customLogicVariableHandlersRepository = null
     )

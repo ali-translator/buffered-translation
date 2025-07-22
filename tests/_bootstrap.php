@@ -7,7 +7,7 @@ define('TEST_DATA_PATH', __DIR__ . DIRECTORY_SEPARATOR . '_data');
 define('SOURCE_CSV_PATH', TEST_DATA_PATH . DIRECTORY_SEPARATOR . 'source' . DIRECTORY_SEPARATOR . 'csv');
 
 // ensure we get report on all possible php errors
-error_reporting(E_ALL);
+error_reporting(E_ALL & ~E_DEPRECATED);
 
 $composerAutoload = __DIR__ . '/../vendor/autoload.php';
 if (!is_file($composerAutoload)) {

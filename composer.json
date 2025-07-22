@@ -17,7 +17,7 @@
         "source": "https://github.com/ali-translator/buffered-translation"
     },
     "require": {
-        "php": "^7.4",
+        "php": "^7.4 || ^8.4",
         "ali-translator/translator":  "^0",
         "ali-translator/text-template": "^1.1.0",
         "ext-intl": "*"
@@ -34,7 +34,7 @@
     },
     "require-dev": {
         "symfony/var-dumper": "^5.0",
-        "php": "^7.4",
+        "php": "^7.4 || ^8.4",
         "phpunit/phpunit": "^9.0"
     },
     "suggest": {
